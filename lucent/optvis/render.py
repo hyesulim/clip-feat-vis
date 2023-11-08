@@ -22,6 +22,7 @@ from tqdm import tqdm
 from PIL import Image
 import torch
 
+from utils import set_seed
 from lucent.optvis import objectives, transform, param
 from lucent.misc.io import show
 
@@ -41,7 +42,9 @@ def render_vis(
     image_name=None,
     show_inline=False,
     fixed_image_size=None,
+    random_seed=1,
 ):
+    set_seed(random_seed)
     if param_f is None:
         param_f = lambda: param.image(128)
     # param_f is a function that should return two things

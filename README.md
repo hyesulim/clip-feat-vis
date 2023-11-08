@@ -1,20 +1,62 @@
 # Revisiting Multimodal Neuron Analysis, CMU 11-785, 2023f
+Hyesu Lim, Changdae Oh, Junhyeok Park, Rohan Prasad
 
-- `main.py`: g
-- `args.py`:
-- `utils.py`:
-
-
-</br>
-
-</br>
-in progress
-</br>
-
-</br>
+> In this project, we reproduce the result of multimodal neuron analysis (OpenAI, 2021) and further investigate the behavior of such neurons after being fine-tuned on diverse downstream task.
 
 
-README of original Lucent library is below:
+<br>
+
+## Instruction
+1. Environment setup (any of python ver >= 3.7, torch ver >= 1.8 may okay).
+``` shell
+conda create -n mmn python=3.8
+conda activate mmn
+conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 -c pytorch -c nvidia
+```
+<br>
+
+2. Prepare the basic experiment pipeline by cloning [lucent](https://github.com/greentfrapp/lucent) repository.
+``` shell
+git clone https://github.com/greentfrapp/lucent.git
+```
+<br>
+
+3. To analyze OpenAI's CLIP models, we also borrow the official code block from OpenAI:
+``` shell
+cd lucent
+git clone https://github.com/openai/CLIP
+mv CLIP/clip clip/
+rm -rf CLIP
+```
+<br>
+
+4. Now, we can play with main.py for any possible lucent-based experiments. For example script, you can refer `script/*.sh` shell files.
+``` shell
+# run a test yourself!
+cd scripts
+sh default.sh
+```
+
+<br>
+
+After the run finished, `lucent/results` directory will be founded, and you can see the result visualization `.png` file.
+
+<br>
+
+## Module description
+Individual files that we've implemented will be elaborated below:
+
+- `main.py`: Main module the feature visualization will be executed (modified from `demo.py` of original lucent library)
+- `args.py`: Experimental arguments and hyperparameter for feature visualization algorithm. We recommend you to take some times to check individual argument for rich experiments.
+- `utils.py`: Module of utility functions (to simplify the `main.py` and enhance its readability)
+
+
+<br>
+
+
+### Acknowledgement
+_This repository is built on top of pytorch [lucent](https://github.com/greentfrapp/lucent) library, we appreciate the authors of lucent! README of the original lucent library is below:_
+
 ---
 
 ![](https://github.com/greentfrapp/lucent/raw/master/images/lucent_header.jpg)

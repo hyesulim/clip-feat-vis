@@ -17,6 +17,9 @@ def parse_arguments():
     parser.add_argument("--c_decorr", default=False, action="store_true",
         help="channel decorrelation"
     )
+    parser.add_argument("--optim", type=str, default='adam', 
+        help="optimizer name",
+    )
     parser.add_argument("--lr", type=float, default=5e-2, 
         help="learning rate of optimization",
     )
@@ -29,11 +32,17 @@ def parse_arguments():
     parser.add_argument("--backbone", type=str, default="CLIP-RN50",
         help="backbone CNN such as CLIP-RN50",
     )
+    parser.add_argument("--ckpt_path", type=str, default="",
+        help="path of pre-trained model checkpoint",
+    )
     parser.add_argument("--tfm", type=str, default="pad;jitter;rscale;rotate",
         help="transform for invariance. separated by semicolon",
     )
     parser.add_argument("--save", type=str, default="",
         help="path for saving result images",
+    )
+    parser.add_argument("--filename", type=str, default="",
+        help="filename of result visualization",
     )
 
     parsed_args = parser.parse_args()
