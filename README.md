@@ -15,31 +15,19 @@ conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=
 ```
 <br>
 
-2. Prepare the basic experiment pipeline by cloning [lucent](https://github.com/greentfrapp/lucent) repository.
+2. Prepare the basic experiment pipeline by cloning this repository.
 ``` shell
-git clone https://github.com/greentfrapp/lucent.git
+git clone https://github.com/hyesulim/11785-f23-prj.git
+cd 11785-f23-prj
 ```
 <br>
 
-3. To analyze OpenAI's CLIP models, we also borrow the official code block from OpenAI:
-``` shell
-cd lucent
-git clone https://github.com/openai/CLIP
-mv CLIP/clip clip/
-rm -rf CLIP
-```
-<br>
-
-4. Now, we can play with main.py for any possible lucent-based experiments. For example script, you can refer `script/*.sh` shell files.
+3. Now, you can play with main.py for any possible lucent-based experiments. For example script, you can refer `script/*.sh` shell files. (After the run finished, `lucent/results` directory will be founded, and you should see the result visualization `*.png` file.)
 ``` shell
 # run a test yourself!
 cd scripts
 sh default.sh
 ```
-
-<br>
-
-After the run finished, `lucent/results` directory will be founded, and you can see the result visualization `.png` file.
 
 <br>
 
