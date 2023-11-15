@@ -1,17 +1,17 @@
-# %%
 """ 
 Linear probing
 """
+import os
 from collections import OrderedDict
 
 import torch
 import torch.nn as nn
 from tqdm import tqdm
 
+from linear_probe.helpers import *
 from lucent.optvis.render import ModuleHook
 
 
-# %%
 def train(
     feature_ext,
     linear_probe,
@@ -19,6 +19,11 @@ def train(
     config,
     obj="layer1_2_relu3",
 ):
+    # set save_dir for logging
+    base_dir = os.path.join(config["root_code"], "logs", config["obj"])
+    save_dir = make_save_dir(base_dir)
+    log_message(str(config), save_dir)
+
     # hook feature extractor
     feature_ext.to(config["device"]).eval()
     features = OrderedDict()
@@ -70,10 +75,10 @@ def train(
             optimizer.step()
 
         loss_avg = loss_total / len(data_loader)
-        print(
-            f"Epoch [{epoch+1}/{config['num_epochs']}], Trianing loss: {loss_avg:.4f}"
-        )
+        msg = f"Epoch [{epoch+1}/{config['num_epochs']}], Trianing loss: {loss_avg:.4f}"
+        print(msg)
+        log_message(msg, save_dir)
 
-    return linear_probe
+    save_model(linear_probe, save_dir)
 
-# %%
+    return linear_probe, save_dir
