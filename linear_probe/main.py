@@ -19,20 +19,7 @@ model = model.visual
 
 model.to(device)
 # %%
-""" Load data """
-
 ROOT = "/home/nas2_userH/hyesulim/Data"
-data_loader = get_combined_loader(root_dir=ROOT, transform=preprocess)
-
-# %%
-"""
-Linear probing model
-"""
-
-in_dim = 256 * 56 * 56
-out_dim = 2  # discriminate two datasets
-linear_probe = nn.Linear(in_dim, out_dim)
-linear_probe.to(device)
 
 config = {
     "device": device,
@@ -40,8 +27,33 @@ config = {
     "lr": 1e-3,
     "num_epochs": 10,
     "obj": "layer1_2_relu3",
+    "batch_size": 128,
+    "subset_samples": 10000
 }
 
-linear_probe = train(model, linear_probe, data_loader, config, obj=config["obj"])
+
+# Load data
+
+data_loader = get_combined_loader(
+    root_dir=ROOT,
+    transform=preprocess,
+    batch_size=config["batch_size"], 
+    subset_samples=config["subset_samples"]
+)
+
+# Linear probing model
+
+in_dim = 256 * 56 * 56
+out_dim = 2  # discriminate two datasets
+linear_probe = nn.Linear(in_dim, out_dim)
+linear_probe.to(device)
+
+linear_probe = train(
+    model, 
+    linear_probe, 
+    data_loader, 
+    config, 
+    obj=config["obj"]
+)
 
 # %%
