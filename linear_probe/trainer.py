@@ -43,11 +43,13 @@ def train(
     linear_probe.train()
 
     # criterion
-    criterion = nn.BCELoss()
+    criterion = nn.BCEWithLogitsLoss()
 
     # optimizer
     if args.optim == "adam":
         optimizer = torch.optim.Adam(linear_probe.parameters(), lr=args.lr)
+    elif args.optim == "sgd":
+        optimizer = torch.optim.SGD(linear_probe.parameters(), lr=args.lr, weight_decay=5e-5)
     else:
         raise NotImplementedError
 
@@ -68,7 +70,7 @@ def train(
                 # feat_flatten = feat_flatten.to(dtype=torch.float32)
 
             # linear probing
-            out = linear_probe(feat_flatten.to(dtype=torch.float))
+            out = linear_probe(feat_flatten.to(dtype=torch.float))  # logits
 
             loss = criterion(out, labels)
             loss_total += loss.item()
@@ -76,8 +78,8 @@ def train(
             # import pdb
 
             # pdb.set_trace()
-            pred = out.argmax(1)
-            train_acc = (pred == labels).sum() / pred.shape[0]
+            # pred = out.argmax(1)
+            train_acc = ((torch.sigmoid(out) > 0.5) == labels).sum() / out.shape[0]
             acc_total += train_acc
 
             if i % 10 == 1:
