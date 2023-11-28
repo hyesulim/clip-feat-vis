@@ -1,13 +1,14 @@
 import ast
 from argparse import ArgumentParser
-import logging
+import os
 
-print('Inside args')
+
 def parse_args(config = None):
 
     if config is None:
-        config_file = "config/cli_args.json"
-        with open(config_file) as f:
+        cwd = os.path.dirname(__file__)
+
+        with open(os.path.join(cwd, "config", "cli_args.json")) as f:
             config = ast.literal_eval(f.read())
             # print(config)
 

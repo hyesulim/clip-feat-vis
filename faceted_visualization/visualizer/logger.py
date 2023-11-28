@@ -5,8 +5,9 @@ from faceted_visualization.visualizer import constants
 import os
 import datetime
 
+cwd = os.path.dirname(__file__)
 
-with open("config/run_configs.json") as f:
+with open(os.path.join(cwd, "config", "run_configs.json")) as f:
     properties = ast.literal_eval(f.read())
 
 now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')

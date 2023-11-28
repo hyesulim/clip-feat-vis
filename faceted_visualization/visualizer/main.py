@@ -134,7 +134,10 @@ def combine_properties(shell_arguments: Dict, properties: dict) -> Dict:
 
 if __name__ == "__main__":
     arguments = args.parse_args()
-    with open("config/run_configs.json") as f:
+
+    cwd = os.path.dirname(__file__)
+
+    with open(os.path.join(cwd, "config", "run_configs.json")) as f:
         properties = ast.literal_eval(f.read())
     properties = combine_properties(arguments, properties)
     logger.info("Load properties = \n%s", pprint.pformat(properties))
