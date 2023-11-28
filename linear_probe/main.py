@@ -5,7 +5,7 @@ sys.path.append("../")
 
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 import torch
 import torch.nn as nn
@@ -44,6 +44,7 @@ def main(args):
         batch_size=args.batch_size,
         subset_samples=args.subset_samples,
         pin_memory=True,
+        target=args.lp_dataset,
     )
 
     print("Dataset loaded")
@@ -63,7 +64,6 @@ def main(args):
         linear_probe, load_dir = train(
             model, linear_probe, data_loader, args, obj=args.obj
         )
-
     elif args.ckpt_dir is not None:
         load_dir = args.ckpt_dir
 

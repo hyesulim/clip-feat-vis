@@ -10,11 +10,13 @@ from torchvision import datasets, transforms
 
 
 def get_combined_loader(
-    root_dir="/home/nas2_userH/hyesulim/Data",
-    batch_size=5,
+    #root_dir="/home/nas2_userH/hyesulim/Data",
+    root_dir="/data2/changdae/data_coop/",
+    batch_size=256,
     subset_samples=1000,
     transform=None,
     pin_memory=True,
+    target='celeba',
 ):
 
     if transform is None:
@@ -31,15 +33,39 @@ def get_combined_loader(
     # )
 
     # torchvision CelebA 
-    celeba_dataset = datasets.CelebA(
-        f"{root_dir}/celebA",
-        split="train",
-        target_type="attr",
-        transform=transform,
-        download=True,
-    )
+    if target == 'celeba':
+        target_dataset = datasets.CelebA(
+            f"{root_dir}/celebA",
+            split="train",
+            target_type="attr",
+            transform=transform,
+            download=True,
+        )
+    elif target == 'sun397':
+        target_dataset = datasets.SUN397(
+            f"{root_dir}/sun397/SUN397",
+            #split="train",
+            transform=transform,
+            download=True,
+        )
+    elif target == 'flower':
+        target_dataset = datasets.Flowers102(
+            f"{root_dir}/oxford_flowers",
+            split="train",
+            transform=transform,
+            download=True,
+        )
+    elif target == 'car':
+        target_dataset = datasets.StanfordCars(
+            f"{root_dir}/stanford_cars",
+            split="train",
+            transform=transform,
+            download=True,
+        )
+    else:
+        raise ValueError(f'{target} dataset is not supported, yet.')
 
-    print("CelebA dataset loaded")
+    print(f"{target} dataset loaded")
 
     # imagenet_dataset = datasets.ImageNet(
     #     f"{root_dir}/ImageNet-1K", split="val", transform=transform, download=True
@@ -47,18 +73,19 @@ def get_combined_loader(
 
     # TODO
     imagenet_dataset = ImageNetDataset(
-        image_dir=f"{root_dir}/ImageNet-1K/val_images", transform=transform
+        #image_dir=f"{root_dir}/ImageNet-1K/val_images", transform=transform
+        image_dir=f"{root_dir}/imagenet/val", transform=transform
     )
 
     print("ImageNet dataset loaded")
 
-    indices = np.random.choice(len(celeba_dataset), subset_samples, replace=False)
-    celeba_sampled_subset = Subset(celeba_dataset, indices)
+    indices = np.random.choice(len(target_dataset), subset_samples, replace=False)
+    target_sampled_subset = Subset(target_dataset, indices)
 
     indices = np.random.choice(len(imagenet_dataset), subset_samples, replace=False)
     imagenet_sampled_subset = Subset(imagenet_dataset, indices)
 
-    combined_dataset = CombinedDataset(celeba_sampled_subset, imagenet_sampled_subset)
+    combined_dataset = CombinedDataset(target_sampled_subset, imagenet_sampled_subset)
     combined_dataloader = DataLoader(
         combined_dataset, batch_size=batch_size, shuffle=True, pin_memory=pin_memory
     )
