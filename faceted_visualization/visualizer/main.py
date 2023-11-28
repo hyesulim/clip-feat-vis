@@ -146,6 +146,6 @@ if __name__ == "__main__":
     properties = combine_properties(arguments, properties)
     logger.info("Load properties = \n%s", pprint.pformat(properties))
     try:
-        orchestrate(config=properties, save_to_file=False)
+        orchestrate(config=properties, save_to_file=True)
     except Exception as e:
         logger.exception("Something went wrong.")
