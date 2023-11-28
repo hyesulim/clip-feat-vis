@@ -1,0 +1,17 @@
+{
+  "probe_checkpoint_directory": "/Users/rohan/repositories/11785-f23-prj/faceted_visualization/linear_probes",
+  "output_directory": "/Users/rohan/repositories/11785-f23-prj/faceted_visualization/runs",
+  "model": "RN50x4",
+  "visualization_layer": "layer4_2_conv3",
+  "linear_probe_layer": "layer1_2_relu3",
+  "objective": "channel",
+  "optimizer": "AdamW",
+  "num_iterations": 512,
+  "learning_rate": 5e-2,
+  "channel": 512,
+  "linear_probe_model": "model_checkpoint (1).pth",
+  "image_h": 288,
+  "image_w": 288,
+  "img_use_decorrelate": True,
+  "img_use_fft": True
+}
