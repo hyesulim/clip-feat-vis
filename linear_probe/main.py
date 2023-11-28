@@ -5,8 +5,6 @@ sys.path.append("../")
 
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-
 import torch
 import torch.nn as nn
 
@@ -16,6 +14,9 @@ from linear_probe.dataset import get_combined_loader
 from linear_probe.helpers import *
 from linear_probe.network import LinearProbe
 from linear_probe.trainer import train
+
+# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
@@ -54,7 +55,14 @@ def main(args):
     # %%
     # Linear probing model
 
-    in_dim = 256 * 56 * 56
+    if args.obj == "layer2_3_relu3":
+        in_dim = 512 * 28 * 28
+    elif args.obj == "layer1_3_relu3":
+        in_dim = 256 * 56 * 56
+    elif args.obj == "layer4_2_relu2":
+        in_dim = 512 * 7 * 7
+    elif args.obj == "layer3_5_relu3":
+        in_dim = 1024 * 14 * 14
     out_dim = 1  # discriminate two datasets
     linear_probe = LinearProbe(in_dim, out_dim)
     linear_probe.to(device)
