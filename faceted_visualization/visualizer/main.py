@@ -8,10 +8,9 @@ sys.path.append("../")
 
 import torch
 from faceted_visualization.visualizer import args, hook, image, constants
+from faceted_visualization.visualizer import logger as logger_
 import clip
-import json
 import logging
-import logger as logger_
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -86,13 +85,18 @@ def optimize(num_iterations: int, image_function: Callable, model: torch.nn.Modu
 
 
 def save_results(image_array: torch.Tensor, config: Dict):
-    output_path = os.path.join(config[constants.OUTPUT_DIRECTORY], run_id, "output.jpg")
+    output_directory = os.path.join(config[constants.OUTPUT_DIRECTORY], run_id)
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+    output_path = os.path.join(output_directory, "output.jpg")
     logger.info("Saving image [ path = %s ]", output_path)
     pil_image = image.convert_to_PIL(image_array)
     pil_image.save(output_path)
 
 
-def orchestrate(config):
+def orchestrate(config, save_to_file: bool = False):
+    if save_to_file:
+        logger_.add_file_handler()
     model = get_model(config[constants.MODEL])
 
     model_hook = hook.register_hooks(model)
@@ -141,4 +145,7 @@ if __name__ == "__main__":
         properties = ast.literal_eval(f.read())
     properties = combine_properties(arguments, properties)
     logger.info("Load properties = \n%s", pprint.pformat(properties))
-    orchestrate(config=properties)
+    try:
+        orchestrate(config=properties, save_to_file=False)
+    except Exception as e:
+        logger.exception("Something went wrong.")
