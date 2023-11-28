@@ -16,16 +16,16 @@ def train(
     feature_ext,
     linear_probe,
     data_loader,
-    config,
+    args,
     obj="layer1_2_relu3",
 ):
     # set save_dir for logging
-    base_dir = os.path.join(config["root_code"], "logs", config["obj"])
+    base_dir = os.path.join(args.root_code, "logs", args.lp_dataset, args.obj)
     save_dir = make_save_dir(base_dir)
-    log_message(str(config), save_dir)
+    log_message(str(args), save_dir)
 
     # hook feature extractor
-    feature_ext.to(config["device"]).eval()
+    feature_ext.to(args.device).eval()
     features = OrderedDict()
 
     def hook_layers(net, prefix=[]):
@@ -43,20 +43,24 @@ def train(
     linear_probe.train()
 
     # criterion
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.BCEWithLogitsLoss()
 
     # optimizer
-    if config["optim"] == "adam":
-        optimizer = torch.optim.Adam(linear_probe.parameters(), lr=config["lr"])
+    if args.optim == "adam":
+        optimizer = torch.optim.Adam(linear_probe.parameters(), lr=args.lr)
+    elif args.optim == "sgd":
+        optimizer = torch.optim.SGD(linear_probe.parameters(), lr=args.lr, weight_decay=5e-5)
     else:
         raise NotImplementedError
 
     # train
-    for epoch in range(config["num_epochs"]):
+    for epoch in range(args.num_epochs):
         loss_total = 0.0
-        for images, labels in tqdm(data_loader):
-            images = images.to(config["device"])
-            labels = labels.to(config["device"])
+        acc_total = 0.0
+        for i, batch in enumerate(tqdm(data_loader)):
+            images = batch[0].to(args.device)
+            labels = batch[1].to(args.device).to(dtype=torch.float).view(-1, 1)
+            # labels = torch.Tensor(labels, dtype=torch.float).view(-1, 1)
 
             # extract features
             with torch.no_grad():
@@ -66,16 +70,30 @@ def train(
                 # feat_flatten = feat_flatten.to(dtype=torch.float32)
 
             # linear probing
-            out = linear_probe(feat_flatten.to(dtype=torch.float32))
+            out = linear_probe(feat_flatten.to(dtype=torch.float))  # logits
+
             loss = criterion(out, labels)
             loss_total += loss.item()
+
+            # import pdb
+
+            # pdb.set_trace()
+            # pred = out.argmax(1)
+            train_acc = ((torch.sigmoid(out) > 0.5) == labels).sum() / out.shape[0]
+            acc_total += train_acc
+
+            if i % 10 == 1:
+                msg = f"Epoch [{epoch+1}/{args.num_epochs}] iter {i}, Trianing loss: {loss.item():.4f}, Train acc: {train_acc:.4f}"
+                print(msg)
+                log_message(msg, save_dir)
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
         loss_avg = loss_total / len(data_loader)
-        msg = f"Epoch [{epoch+1}/{config['num_epochs']}], Trianing loss: {loss_avg:.4f}"
+        acc_avg = acc_total / len(data_loader)
+        msg = f"Epoch [{epoch+1}/{args.num_epochs}], Trianing loss: {loss_avg:.4f}, Train acc: {acc_avg:.4f}"
         print(msg)
         log_message(msg, save_dir)
 
