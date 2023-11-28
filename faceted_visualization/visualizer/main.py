@@ -104,7 +104,7 @@ def orchestrate(config, save_to_file: bool = False):
     params, image_f = image.generate_img(w=config[constants.IMAGE_WIDTH],
                                          h=config[constants.IMAGE_HEIGHT],
                                          decorrelate=config[constants.IMG_DECORRELATE],
-                                         fft=config[constants.IMG_FFT])
+                                         fft=config[constants.IMG_FFT], device=device)
 
     optimizer = get_optimizer(parameters=params, optimizer_name=config[constants.OPTIMIZER],
                               learning_rate=config[constants.LEARNING_RATE])
