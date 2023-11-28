@@ -1,7 +1,7 @@
 import ast
 import sys
 import logging
-import constants
+from faceted_visualization.visualizer import constants
 import os
 import datetime
 
