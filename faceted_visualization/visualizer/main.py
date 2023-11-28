@@ -94,7 +94,7 @@ def save_results(image_array: torch.Tensor, config: Dict):
     pil_image.save(output_path)
 
 
-def orchestrate(config, save_to_file: bool = False):
+def orchestrate(config, save_to_file: bool = False) -> Callable:
     if save_to_file:
         logger_.add_file_handler()
     model = get_model(config[constants.MODEL])
@@ -123,6 +123,8 @@ def orchestrate(config, save_to_file: bool = False):
              model_hook=model_hook)
 
     save_results(image_f(), config)
+
+    return image_f
 
 
 def combine_properties(shell_arguments: Dict, properties: dict) -> Dict:
