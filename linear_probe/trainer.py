@@ -20,7 +20,7 @@ def train(
     obj="layer1_2_relu3",
 ):
     # set save_dir for logging
-    base_dir = os.path.join(args.root_code, "logs", args.obj)
+    base_dir = os.path.join(args.root_code, "logs", args.lp_dataset, args.obj)
     save_dir = make_save_dir(base_dir)
     log_message(str(args), save_dir)
 

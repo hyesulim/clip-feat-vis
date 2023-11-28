@@ -45,6 +45,7 @@ def main(args):
         batch_size=args.batch_size,
         subset_samples=args.subset_samples,
         pin_memory=True,
+        target=args.lp_dataset,
     )
 
     print("Dataset loaded")
