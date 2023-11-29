@@ -20,7 +20,7 @@ def train(
     obj="layer1_2_relu3",
 ):
     # set save_dir for logging
-    base_dir = os.path.join(args.root_code, "logs", args.lp_dataset, args.obj)
+    base_dir = os.path.join(args.root_code, "logs", args.lp_dataset, args.model_arch, args.obj)
     save_dir = make_save_dir(base_dir)
     log_message(str(args), save_dir)
 
@@ -49,7 +49,9 @@ def train(
     if args.optim == "adam":
         optimizer = torch.optim.Adam(linear_probe.parameters(), lr=args.lr)
     elif args.optim == "sgd":
-        optimizer = torch.optim.SGD(linear_probe.parameters(), lr=args.lr, weight_decay=5e-5)
+        optimizer = torch.optim.SGD(
+            linear_probe.parameters(), lr=args.lr, weight_decay=5e-5
+        )
     else:
         raise NotImplementedError
 
@@ -97,6 +99,9 @@ def train(
         print(msg)
         log_message(msg, save_dir)
 
-    save_model(linear_probe, save_dir)
+        if epoch % 3 == 1:
+            save_model(linear_probe, save_dir, epoch=epoch + 1)
+
+    save_model(linear_probe, save_dir, epoch="last")
 
     return linear_probe, save_dir
