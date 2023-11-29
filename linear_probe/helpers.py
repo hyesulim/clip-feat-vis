@@ -52,9 +52,9 @@ def log_message(message, save_dir):
         file.write(message + "\n")
 
 
-def save_model(model, save_dir):
+def save_model(model, save_dir, epoch="last"):
     # Save the model checkpoint
-    checkpoint_path = os.path.join(save_dir, "model_checkpoint.pth")
+    checkpoint_path = os.path.join(save_dir, f"model_checkpoint-{epoch}.pth")
     torch.save(model.state_dict(), checkpoint_path)
     print(f"Model saved to {checkpoint_path}")
 
