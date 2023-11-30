@@ -50,6 +50,6 @@ python $FACETED_VIS_HOME/visualizer/main.py \
 --image-width $IMAGE_W \
 --image-height $IMAGE_H \
 --use-transforms \
---decorrelate 0 \
---fft 0 \
+--decorrelate 1 \
+--fft 1 \
 --num-iterations 512

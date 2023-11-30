@@ -115,7 +115,7 @@ if __name__ == "__main__":
             api_key=properties[constants.WANDB_API_KEY],
             entity=properties[constants.WANDB_ENTITY],
             project=properties[constants.WANDB_PROJECT],
-            run_name=properties[constants.WANDB_RUN_NAME],
+            run_name=properties.get(constants.WANDB_RUN_NAME, None),
             config=properties
         )
         orchestrate(config=properties, save_to_file=True, wandb_object=wandb_object_)
