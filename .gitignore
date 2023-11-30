@@ -134,3 +134,5 @@ results/
 logs/
 *.txt
 *.pth
+
+**/wandb
