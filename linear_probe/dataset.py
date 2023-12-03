@@ -10,15 +10,19 @@ from torchvision import datasets, transforms
 
 
 def get_combined_loader(
+<<<<<<< HEAD
     #root_dir="/home/nas2_userH/hyesulim/Data",
     root_dir="/data1/changdae/data_coop",
+=======
+    root_dir="/home/nas2_userH/hyesulim/Data",
+    # root_dir="/data2/changdae/data_coop/",
+>>>>>>> ddf23970d719fb968ef433269dee1d128c431e63
     batch_size=256,
     subset_samples=10000,
     transform=None,
     pin_memory=True,
-    target='celeba',
+    target="celeba",
 ):
-
     if transform is None:
         transform = transforms.Compose(
             [transforms.Resize((256, 256)), transforms.ToTensor()]
@@ -32,8 +36,8 @@ def get_combined_loader(
     #     transform=transform,
     # )
 
-    # torchvision CelebA 
-    if target == 'celeba':
+    # torchvision CelebA
+    if target == "celeba":
         target_dataset = datasets.CelebA(
             f"{root_dir}/celebA",
             split="train",
@@ -41,14 +45,19 @@ def get_combined_loader(
             transform=transform,
             download=True,
         )
-    elif target == 'sun397':
+    elif target == "sun397":
         target_dataset = datasets.SUN397(
+<<<<<<< HEAD
             f"{root_dir}/sun397/",
             #split="train",
+=======
+            f"{root_dir}/sun397/SUN397",
+            # split="train",
+>>>>>>> ddf23970d719fb968ef433269dee1d128c431e63
             transform=transform,
             download=False,
         )
-    elif target == 'flower':
+    elif target == "flower":
         target_dataset = datasets.Flowers102(
             #/data1/changdae/data_coop/Flowers102/flowers-102/102flowers
             f"{root_dir}/oxford_flowers/",
@@ -56,7 +65,7 @@ def get_combined_loader(
             transform=transform,
             download=True,
         )
-    elif target == 'car':
+    elif target == "car":
         target_dataset = datasets.StanfordCars(
             f"{root_dir}/",
             split="train",
@@ -71,7 +80,7 @@ def get_combined_loader(
             download=True,
         )
     else:
-        raise ValueError(f'{target} dataset is not supported, yet.')
+        raise ValueError(f"{target} dataset is not supported, yet.")
 
     print(f"{target} dataset loaded")
 
@@ -85,7 +94,14 @@ def get_combined_loader(
     #     image_dir=f"{root_dir}/imagenet/images/val", transform=transform
     # )
     imagenet_dataset = ImageFolderWithPaths(f'{root_dir}/imagenet/images/val', transform=transform)
-    print("ImageNet dataset loaded")
+    #! this is hyesu's
+    # imagenet_dataset = ImageNetDataset(
+    #     image_dir=f"{root_dir}/ImageNet-1K/val_images",
+    #     transform=transform
+    #     # image_dir=f"{root_dir}/imagenet/val", transform=transform
+    # )
+
+    # print("ImageNet dataset loaded")
 
     indices = np.random.choice(len(target_dataset), subset_samples, replace=False)
     target_sampled_subset = Subset(target_dataset, indices)

@@ -1,5 +1,9 @@
 # Properties
-OUTPUT_DIRECTORY = "output_directory"
+# Paths
+PATH_CONFIG_FILE = "path_config_file"
+PATH_OUTPUT = "output_directory"
+PATH_LINEAR_PROBE = "linear_probe_directory"
+
 MODEL = "model"
 VISUALIZATION_LAYER = "visualization_layer"
 LINEAR_PROBE_LAYER = "linear_probe_layer"
@@ -8,12 +12,22 @@ OPTIMIZER = "optimizer"
 NUMBER_OF_ITERATIONS = "num_iterations"
 LEARNING_RATE = "learning_rate"
 CHANNEL = "channel"
-PROBES_DIRECTORY = "probe_checkpoint_directory"
-CHECKPOINT_FILENAME = "linear_probe_model"
+RANDOM_SEED = "random_seed"
+
 IMAGE_HEIGHT = "image_h"
 IMAGE_WIDTH = "image_w"
 IMG_DECORRELATE = "img_use_decorrelate"
 IMG_FFT = "img_use_fft"
+# WandB
+WANDB_API_KEY = "wandb_api_key"
+WANDB_ENTITY = "wandb_entity"
+WANDB_PROJECT = "wandb_project"
+WANDB_RUN_NAME = "wandb_run_name"
+WANDB_ENABLED = "wandb_enabled"
+
+NEURON_X = "neuron_x"
+NEURON_Y = "neuron_y"
+USE_TRANSFORMS = "use_transforms"
 
 ADAM = "Adam"
 ADAM_W = "AdamW"

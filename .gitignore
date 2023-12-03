@@ -137,3 +137,7 @@ logs/
 *.txt
 *.pth
 *.pt
+*.jpg
+runs/
+
+**/wandb
