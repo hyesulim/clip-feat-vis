@@ -1,7 +1,8 @@
 import argparse
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description='Configuration for the model')
+    parser = argparse.ArgumentParser(description="Configuration for the model")
 
     # Add arguments based on the config dictionary
     parser.add_argument('--root_data', type=str, default="/data1/changdae/data_coop/",
@@ -30,8 +31,10 @@ def parse_args():
     parser.add_argument('--ckpt_dir', type=str, default=None,
                         help='Test model checkpoint directory')
 
+
     args = parser.parse_args()
     return args
+
 
 if __name__ == "__main__":
     args = parse_args()

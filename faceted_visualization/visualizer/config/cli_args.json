@@ -1,0 +1,42 @@
+{
+  "model": {
+    "long_flag": "--model",
+    "is_required": False,
+    "help_message": "model to visualize (only supports CLIP models)",
+    "dest": "model"
+  },
+  "layer": {
+    "long_flag": "--layer",
+    "is_required": False,
+    "help_message": "layer to visualize",
+    "dest": "visualization_layer"
+  },
+  "linear_probe_layer": {
+    "long_flag": "--linear-probe-layer",
+    "is_required": False,
+    "help_message": "layer on which linear probe was trained (must be prior to visualization layer)",
+    "dest": "linear_probe_layer"
+  },
+  "objective": {
+    "long_flag": "--objective",
+    "is_required": False,
+    "choices": [
+      "channel",
+      "neuron"
+    ],
+    "help_message": "whether neuron or channel activation should be maximized",
+    "objective": "linear_probe_layer",
+    "dest": "objective"
+  },
+  "optimizer": {
+    "long_flag": "--opt",
+    "is_required": False,
+    "choices": [
+      "AdamW",
+      "Adam",
+      "SGD"
+    ],
+    "help_message": "optimizer type",
+    "dest": "optimizer"
+  }
+}

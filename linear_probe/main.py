@@ -5,8 +5,6 @@ sys.path.append("../")
 
 import os
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-
 import torch
 import torch.nn as nn
 
@@ -17,27 +15,33 @@ from linear_probe.helpers import *
 from linear_probe.network import LinearProbe
 from linear_probe.trainer import train
 
-IN_DIM_RN50 = {
-    'layer2_3_relu3': 512 * 28 * 28,
-    "layer1_3_relu3": 256 * 56 * 56,
-    'layer4_2_relu2': 512 * 7 * 7,
-    "layer3_5_relu3": 1024 * 14 * 14,
-}
-IN_DIM_RN50x4 = {
-    'layer1_0_conv3': 320 * 72 * 72,
-    'layer1_0_relu3': 320 * 72 * 72,
-    'layer1_3_conv3': 320 * 72 * 72,
-    'layer1_3_relu3': 320 * 72 * 72,
-    'layer2_5_conv3': 640 * 36 * 36,
-    "layer2_5_relu3": 640 * 36 * 36,
-    'layer3_9_conv3': 1280 * 18 * 18,
-    "layer3_9_relu3": 1280 * 18 * 18,
-}
+# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 # %%
+
+IN_DIM_RN50 = {
+    "layer2_3_relu3": 512 * 28 * 28,
+    "layer1_3_relu3": 256 * 56 * 56,
+    "layer4_2_relu2": 512 * 7 * 7,
+    "layer3_5_relu3": 1024 * 14 * 14,
+}
+
+IN_DIM_RN50x4 = {
+    "layer1_0_conv3": 320 * 72 * 72,
+    "layer1_0_relu3": 320 * 72 * 72,
+    "layer1_3_conv3": 320 * 72 * 72,
+    "layer1_3_relu3": 320 * 72 * 72,
+    "layer2_5_conv3": 640 * 36 * 36,
+    "layer2_5_relu3": 640 * 36 * 36,
+    "layer3_9_conv3": 1280 * 18 * 18,
+    "layer3_9_relu3": 1280 * 18 * 18,
+}
+
+
 def main(args):
     """Load model"""
 
@@ -81,6 +85,7 @@ def main(args):
         linear_probe, load_dir = train(
             model, linear_probe, data_loader, args, obj=args.obj
         )
+
     elif args.ckpt_dir is not None:
         load_dir = args.ckpt_dir
 

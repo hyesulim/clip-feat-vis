@@ -49,7 +49,9 @@ def train(
     if args.optim == "adam":
         optimizer = torch.optim.Adam(linear_probe.parameters(), lr=args.lr)
     elif args.optim == "sgd":
-        optimizer = torch.optim.SGD(linear_probe.parameters(), lr=args.lr, weight_decay=5e-5)
+        optimizer = torch.optim.SGD(
+            linear_probe.parameters(), lr=args.lr, weight_decay=5e-5
+        )
     else:
         raise NotImplementedError
 
