@@ -10,15 +10,14 @@ from torchvision import datasets, transforms
 
 
 def get_combined_loader(
-    #root_dir="/home/nas2_userH/hyesulim/Data",
-    root_dir="/data2/changdae/data_coop/",
+    root_dir="/home/nas2_userH/hyesulim/Data",
+    # root_dir="/data2/changdae/data_coop/",
     batch_size=256,
     subset_samples=1000,
     transform=None,
     pin_memory=True,
-    target='celeba',
+    target="celeba",
 ):
-
     if transform is None:
         transform = transforms.Compose(
             [transforms.Resize((256, 256)), transforms.ToTensor()]
@@ -32,8 +31,8 @@ def get_combined_loader(
     #     transform=transform,
     # )
 
-    # torchvision CelebA 
-    if target == 'celeba':
+    # torchvision CelebA
+    if target == "celeba":
         target_dataset = datasets.CelebA(
             f"{root_dir}/celebA",
             split="train",
@@ -41,21 +40,21 @@ def get_combined_loader(
             transform=transform,
             download=True,
         )
-    elif target == 'sun397':
+    elif target == "sun397":
         target_dataset = datasets.SUN397(
             f"{root_dir}/sun397/SUN397",
-            #split="train",
+            # split="train",
             transform=transform,
             download=True,
         )
-    elif target == 'flower':
+    elif target == "flower":
         target_dataset = datasets.Flowers102(
             f"{root_dir}/oxford_flowers",
             split="train",
             transform=transform,
             download=True,
         )
-    elif target == 'car':
+    elif target == "car":
         target_dataset = datasets.StanfordCars(
             f"{root_dir}/stanford_cars",
             split="train",
@@ -63,7 +62,7 @@ def get_combined_loader(
             download=True,
         )
     else:
-        raise ValueError(f'{target} dataset is not supported, yet.')
+        raise ValueError(f"{target} dataset is not supported, yet.")
 
     print(f"{target} dataset loaded")
 
@@ -73,8 +72,9 @@ def get_combined_loader(
 
     # TODO
     imagenet_dataset = ImageNetDataset(
-        #image_dir=f"{root_dir}/ImageNet-1K/val_images", transform=transform
-        image_dir=f"{root_dir}/imagenet/val", transform=transform
+        image_dir=f"{root_dir}/ImageNet-1K/val_images",
+        transform=transform
+        # image_dir=f"{root_dir}/imagenet/val", transform=transform
     )
 
     print("ImageNet dataset loaded")
