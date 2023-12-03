@@ -60,7 +60,7 @@ def whitespace_clean(text):
 
 
 class SimpleTokenizer(object):
-    def __init__(self, bpe_path: str = default_bpe()):
+    def __init__(self, bpe_path: str = default_bpe(), special_tokens=None):
         self.byte_encoder = bytes_to_unicode()
         self.byte_decoder = {v: k for k, v in self.byte_encoder.items()}
         merges = gzip.open(bpe_path).read().decode("utf-8").split('\n')
@@ -70,12 +70,20 @@ class SimpleTokenizer(object):
         vocab = vocab + [v+'</w>' for v in vocab]
         for merge in merges:
             vocab.append(''.join(merge))
-        vocab.extend(['<|startoftext|>', '<|endoftext|>'])
+        if not special_tokens:
+            special_tokens = ['<start_of_text>', '<end_of_text>']
+        else:
+            special_tokens = ['<start_of_text>', '<end_of_text>'] + special_tokens
+        vocab.extend(special_tokens)
         self.encoder = dict(zip(vocab, range(len(vocab))))
         self.decoder = {v: k for k, v in self.encoder.items()}
         self.bpe_ranks = dict(zip(merges, range(len(merges))))
-        self.cache = {'<|startoftext|>': '<|startoftext|>', '<|endoftext|>': '<|endoftext|>'}
-        self.pat = re.compile(r"""<\|startoftext\|>|<\|endoftext\|>|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+""", re.IGNORECASE)
+        self.cache = {t:t for t in special_tokens}
+        special = "|".join(special_tokens)
+        self.pat = re.compile(special + r"""|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+""", re.IGNORECASE)
+
+        self.vocab_size = len(self.encoder)
+        self.all_special_ids = [self.encoder[t] for t in special_tokens]
 
     def bpe(self, token):
         if token in self.cache:

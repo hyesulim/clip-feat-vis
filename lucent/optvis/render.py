@@ -25,7 +25,7 @@ import torch
 from utils import set_seed
 from lucent.optvis import objectives, transform, param
 from lucent.misc.io import show
-
+import pdb
 
 def render_vis(
     model,
@@ -43,7 +43,9 @@ def render_vis(
     show_inline=False,
     fixed_image_size=None,
     random_seed=1,
-):
+): 
+    # import pdb
+    # pdb.set_trace()
     set_seed(random_seed)
     if param_f is None:
         param_f = lambda: param.image(128)
@@ -97,6 +99,7 @@ def render_vis(
             def closure():
                 optimizer.zero_grad()
                 try:
+                    #pdb.set_trace()
                     model(transform_f(image_f()))
                 except RuntimeError as ex:
                     if i == 1:

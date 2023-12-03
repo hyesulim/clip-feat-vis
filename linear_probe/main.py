@@ -17,6 +17,23 @@ from linear_probe.helpers import *
 from linear_probe.network import LinearProbe
 from linear_probe.trainer import train
 
+IN_DIM_RN50 = {
+    'layer2_3_relu3': 512 * 28 * 28,
+    "layer1_3_relu3": 256 * 56 * 56,
+    'layer4_2_relu2': 512 * 7 * 7,
+    "layer3_5_relu3": 1024 * 14 * 14,
+}
+IN_DIM_RN50x4 = {
+    'layer1_0_conv3': 320 * 72 * 72,
+    'layer1_0_relu3': 320 * 72 * 72,
+    'layer1_3_conv3': 320 * 72 * 72,
+    'layer1_3_relu3': 320 * 72 * 72,
+    'layer2_5_conv3': 640 * 36 * 36,
+    "layer2_5_relu3": 640 * 36 * 36,
+    'layer3_9_conv3': 1280 * 18 * 18,
+    "layer3_9_relu3": 1280 * 18 * 18,
+}
+
 # os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
@@ -24,7 +41,7 @@ from linear_probe.trainer import train
 def main(args):
     """Load model"""
 
-    backbone = "RN50"
+    backbone = args.model_arch
     device = "cuda" if torch.cuda.is_available() else "cpu"
     args.device = device
     print(device)
@@ -55,7 +72,7 @@ def main(args):
     # %%
     # Linear probing model
 
-    in_dim = 256 * 56 * 56
+    in_dim = IN_DIM_RN50[args.obj] if args.model_arch == 'RN50' else IN_DIM_RN50x4[args.obj]
     out_dim = 1  # discriminate two datasets
     linear_probe = LinearProbe(in_dim, out_dim)
     linear_probe.to(device)

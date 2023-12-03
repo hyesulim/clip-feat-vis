@@ -20,7 +20,7 @@ def train(
     obj="layer1_2_relu3",
 ):
     # set save_dir for logging
-    base_dir = os.path.join(args.root_code, "logs", args.lp_dataset, args.obj)
+    base_dir = os.path.join(args.root_code, "logs", args.lp_dataset, args.model_arch, args.obj)
     save_dir = make_save_dir(base_dir)
     log_message(str(args), save_dir)
 
@@ -96,6 +96,11 @@ def train(
         msg = f"Epoch [{epoch+1}/{args.num_epochs}], Trianing loss: {loss_avg:.4f}, Train acc: {acc_avg:.4f}"
         print(msg)
         log_message(msg, save_dir)
+
+        if (epoch + 1) % 5 == 0:
+            save_dir_temp = save_dir + f'_{epoch+1}'
+            os.makedirs(save_dir_temp, exist_ok=True)
+            save_model(linear_probe, save_dir_temp)
 
     save_model(linear_probe, save_dir)
 

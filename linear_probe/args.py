@@ -4,9 +4,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Configuration for the model')
 
     # Add arguments based on the config dictionary
-    parser.add_argument('--root_data', type=str, default="/data2/changdae/data_coop/",
+    parser.add_argument('--root_data', type=str, default="/data1/changdae/data_coop/",
                         help='Root path for the data')
-    parser.add_argument('--root_code', type=str, default="/data2/changdae/lucent/linear_probe",
+    parser.add_argument('--root_code', type=str, default="/data1/changdae/11785-f23-prj/linear_probe",
                         help='Root path for the code')
     parser.add_argument('--lp_dataset', type=str, default="celeba",
                         help='LP target dataset (will be combined with ImageNet)')
@@ -19,6 +19,8 @@ def parse_args():
                         help='Number of epochs')
     parser.add_argument('--obj', type=str, default='layer1_2_relu3',
                         help='Objective')
+    parser.add_argument('--model_arch', type=str, default='RN50x4',
+                        help='CLIP visual encoder backbone architecture')
     parser.add_argument('--batch_size', type=int, default=256,
                         help='Batch size')
     parser.add_argument('--subset_samples', type=int, default=10000,
