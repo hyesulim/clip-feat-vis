@@ -1,6 +1,9 @@
+from typing import List
+
 import numpy as np
 import torch
 from PIL import Image
+import torchvision.transforms.v2
 
 # based on code from https://github.com/greentfrapp/lucent/tree/dev/lucent/optvis/param
 
@@ -107,3 +110,29 @@ def convert_to_PIL(tensor) -> Image.Image:
     if len(image.shape) == 4:
         image = np.concatenate(image, axis=1)
     return Image.fromarray(image)
+
+
+def consolidate_transforms(use_clip_transforms: bool, use_standard_transforms: bool,
+                           clip_transforms: torchvision.transforms.Compose):
+    if not use_clip_transforms:
+        clip_transforms = []
+
+    if use_standard_transforms:
+        standard_transforms = get_standard_transforms()
+    else:
+        standard_transforms = []
+    transforms = clip_transforms + standard_transforms
+    if len(transforms) > 0:
+        transforms = torchvision.transforms.v2.Compose(transforms=transforms)
+    else:
+        transforms = None
+    return transforms
+
+
+def get_standard_transforms() -> List:
+    return [
+        torchvision.transforms.v2.RandomAffine(degrees=0, translate=(0.03, 0.03)),
+        torchvision.transforms.v2.RandomAffine(degrees=0, scale=(0.9, 1.1)),
+        torchvision.transforms.v2.RandomRotation((-10, 10)),
+        torchvision.transforms.v2.RandomAffine(degrees=0, translate=(0.015, 0.015)),
+    ]

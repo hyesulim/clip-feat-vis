@@ -7,19 +7,20 @@ from typing import Callable, Dict, Tuple
 
 import torch
 import torchvision.transforms.transforms
+import torchvision.transforms.v2
 
 import cli, hook, image, constants, render, wb, helpers
 import logger as logger_
 import clip
 import logging
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 logger = logging.getLogger()
 run_id = logger_.run_id
 
 
-def get_probe_weights(model_location: str) -> torch.Tensor:
+def get_probe_weights(model_location: str, device: str) -> torch.Tensor:
     logger.info("Retrieving weights of linear probe [ path = %s ]", model_location)
     linear_probe = torch.load(model_location, map_location=device)
     if "linear.weight" in linear_probe.keys():
@@ -28,7 +29,7 @@ def get_probe_weights(model_location: str) -> torch.Tensor:
         return linear_probe["weight"][0]
 
 
-def get_model(model_name) -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
+def get_model(model_name, device) -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
     logger.info("Loading CLIP model [ %s ].", model_name)
     if model_name in clip.available_models():
         model, transforms = clip.load(model_name, device=device)
@@ -38,7 +39,7 @@ def get_model(model_name) -> Tuple[torch.nn.Module, torchvision.transforms.trans
         del transforms.transforms[2]
         del transforms.transforms[2]
         logger.info("Finished loading transforms [ %s ]", transforms)
-        return model, transforms
+        return model, transforms.transforms
     else:
         raise RuntimeError("Unable to locate CLIP model. Possible values are {!s}".format(clip.available_models()))
 
@@ -55,10 +56,10 @@ def get_optimizer(parameters, optimizer_name: str, learning_rate: float):
         return torch.optim.SGD(parameters, lr=learning_rate)
 
 
-def orchestrate(config: Dict, wandb_object: wb.WandB = None, save_to_file: bool = False) -> Callable:
+def orchestrate(config: Dict, wandb_object: wb.WandB = None, save_to_file: bool = False, device: str = 'cpu') -> Callable:
     if save_to_file:
         logger_.add_file_handler(config)
-    model, transforms = get_model(config[constants.MODEL])
+    model, clip_transforms = get_model(config[constants.MODEL], device=device)
 
     model_hook = hook.register_hooks(model)
 
@@ -70,10 +71,14 @@ def orchestrate(config: Dict, wandb_object: wb.WandB = None, save_to_file: bool 
     optimizer = get_optimizer(parameters=params, optimizer_name=config[constants.OPTIMIZER],
                               learning_rate=config[constants.LEARNING_RATE])
 
-    probe_weights = get_probe_weights(model_location=config[constants.PATH_LINEAR_PROBE])
+    probe_weights = get_probe_weights(model_location=config[constants.PATH_LINEAR_PROBE], device=device)
 
-    if not config[constants.USE_TRANSFORMS]:
-        transforms = None
+    transforms = image.consolidate_transforms(
+        use_clip_transforms=config[constants.USE_TRANSFORMS],
+        use_standard_transforms=config[constants.USE_STD_TRANSFORMS],
+        clip_transforms=clip_transforms
+    )
+    logger.info("Final list of transforms = %s", transforms.transforms if transforms is not None else "NA")
 
     render.optimize(num_iterations=config[constants.NUMBER_OF_ITERATIONS],
                     transforms=transforms,
@@ -89,7 +94,8 @@ def orchestrate(config: Dict, wandb_object: wb.WandB = None, save_to_file: bool 
                     neuron_x=config.get(constants.NEURON_X, None),
                     neuron_y=config.get(constants.NEURON_Y, None),
                     wandb_object=wandb_object,
-                    run_id=run_id)
+                    run_id=run_id,
+                    device=device)
 
     helpers.save_results(image_array=image_f(),
                          output_directory=os.path.join(config[constants.PATH_OUTPUT], run_id),
