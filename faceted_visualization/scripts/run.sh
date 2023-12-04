@@ -14,19 +14,26 @@ else
  RANDOM_SEED=1
 fi
 
+for lpd in "aircraft" "sun" "flowers"
+do
+LP_DATASET=${lpd}
+
 # Paths to be set by the user
-FACETED_VIS_HOME=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization
-CONFIG_FILE_PATH=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization/visualizer/config/run_configs.json
-LINEAR_PROBE_PATH=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization/linear_probes/celeba/RN50x4
+FT_CKPT_PATH='/data1/changdae/11785-f23-prj/RN50x4_FT.pt'
+FACETED_VIS_HOME=/data1/changdae/11785-f23-prj/faceted_visualization
+CONFIG_FILE_PATH=/data1/changdae/11785-f23-prj/faceted_visualization/visualizer/config/run_configs.json
+LINEAR_PROBE_PATH=/data1/changdae/11785-f23-prj/faceted_visualization/linear_probes/${LP_DATASET}
+OUT_PATH=/data1/changdae/11785-f23-prj/faceted_visualization/runs/${LP_DATASET}
 
 # model settings
 MODELS=("RN50x4")
 LAYERS=("layer4_5_conv3")
-# LINEAR_PROBE_LAYERS=("layer1_0_conv3" "layer1_3_conv3" "layer2_5_conv3" "layer3_9_conv3")
-LINEAR_PROBE_LAYERS=("layer1_3_relu3" "layer2_5_relu3")
-OBJECTIVES=("channel" "neuron")
+LINEAR_PROBE_LAYERS=("layer1_3_conv3" "layer2_5_conv3" "layer3_9_conv3")
+#LINEAR_PROBE_LAYERS=("layer1_3_relu" "layer2_5_relu")
+OBJECTIVES=("neuron")
 
-OPTIMIZERS=("AdamW" "Adam" "SGD")
+#OPTIMIZERS=("AdamW" "Adam" "SGD")
+OPTIMIZERS=("Adam")
 ITERATIONS=(512)
 LEARNING_RATES=(5e-2)
 CHANNELS=(512)
@@ -36,10 +43,12 @@ IMAGE_WS=(224)
 IMAGE_HS=(224)
 
 # other settings
-WANDB_RUN_NAME="local-testing-with-transforms"
-FFT=(0 1)
-DECORRELATE=(0 1)
-WANDBFLAGS=("--no-wandb") # "--wandb" 
+#WANDB_RUN_NAME="local-testing-with-transforms"
+WANDB_RUN_NAME="idl_fvis"
+FFT=(1)
+DECORRELATE=(1)
+#WANDBFLAGS=("--no-wandb") # "--wandb" 
+WANDBFLAGS=("--wandb")
 TRANSFORMSFLAGS=("--use-transforms") #"--no-use-transforms" 
 
 for model in ${MODELS[@]}; do
@@ -61,10 +70,12 @@ for model in ${MODELS[@]}; do
                                 # you can change string like this: 
                                 # "$model"_"$layer"_"$lp"_"$obj"_"$opt"_"$it"_"$lr"_"$channel"
                                 WANDB_RUN_NAME="$WANDB_RUN_NAME" 
-                                CUDA_VISIBILE_DEVICES=1 python $FACETED_VIS_HOME/visualizer/main.py \
+                                CUDA_VISIBILE_DEVICES=7 python $FACETED_VIS_HOME/visualizer/main.py \
                                   --random-seed $RANDOM_SEED \
                                   --config-file-path $CONFIG_FILE_PATH \
-                                  --linear-probe-path "$LINEAR_PROBE_PATH/$lp.pth" \
+                                  --ckpt-path $FT_CKPT_PATH \
+                                  --linear-probe-path $LINEAR_PROBE_PATH \
+                                  --output_directory $OUT_PATH \
                                   --model $model \
                                   --layer $layer \
                                   --linear-probe-layer $lp \
@@ -97,4 +108,6 @@ for model in ${MODELS[@]}; do
       done
     done
   done
+done
+
 done

@@ -1,7 +1,5 @@
 {
-  "output_directory": "/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization/runs",
-  "wandb_api_key": "1fb27221b1ce89ac337a058aca6a524ca2387e44",
-  "wandb_entity": "hyesulim-hs",
-  "wandb_project": "idl-project"
-
+  "wandb_api_key": "54d79096e00d2c7788dec7b4470c1555bd9e0e2c",
+  "wandb_entity": "changdaeoh",
+  "wandb_project": "idl-feat-vis"
 }

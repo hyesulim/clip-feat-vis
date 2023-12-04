@@ -8,7 +8,7 @@ import os
 import torch
 import torch.nn as nn
 
-import clip
+import clip.clip as clip
 from linear_probe.args import parse_args
 from linear_probe.dataset import get_combined_loader
 from linear_probe.helpers import *
@@ -18,27 +18,33 @@ from linear_probe.trainer import train
 # os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 
 # %%
 
 IN_DIM_RN50 = {
-    "layer2_3_relu3": 512 * 28 * 28,
-    "layer1_3_relu3": 256 * 56 * 56,
-    "layer4_2_relu2": 512 * 7 * 7,
-    "layer3_5_relu3": 1024 * 14 * 14,
+    "layer1_2_relu": 256 * 56 * 56,
+    "layer2_3_relu": 512 * 28 * 28,
+    "layer3_5_relu": 1024 * 14 * 14,
+    "layer4_2_relu": 512 * 7 * 7,
 }
+# IN_DIM_RN50 = {
+#     'layer2_3_relu3': 512 * 28 * 28,
+#     "layer1_3_relu3": 256 * 56 * 56,
+#     'layer4_2_relu2': 512 * 7 * 7,
+#     "layer3_5_relu3": 1024 * 14 * 14,
+# }
 
 IN_DIM_RN50x4 = {
     "layer1_0_conv3": 320 * 72 * 72,
-    "layer1_0_relu3": 320 * 72 * 72,
+    "layer1_0_relu": 320 * 72 * 72,
     "layer1_3_conv3": 320 * 72 * 72,
-    "layer1_3_relu3": 320 * 72 * 72,
+    "layer1_3_relu": 320 * 72 * 72,
     "layer2_5_conv3": 640 * 36 * 36,
-    "layer2_5_relu3": 640 * 36 * 36,
+    "layer2_5_relu": 640 * 36 * 36,
     "layer3_9_conv3": 1280 * 18 * 18,
-    "layer3_9_relu3": 1280 * 18 * 18,
+    "layer3_9_relu": 1280 * 18 * 18,
 }
 
 
@@ -50,8 +56,16 @@ def main(args):
     args.device = device
     print(device)
 
-    model, preprocess = clip.load(backbone, device=device)
-    model = model.visual
+
+    # model, preprocess = clip.load(backbone, device=device)
+    # model = model.visual
+    model, _, preprocess = clip.load(args.model_arch, device=device, jit=False)
+    if args.ftckpt_dir:
+        model = torch.load(args.ftckpt_dir)
+        model = model.image_encoder.model.visual
+    else:
+        model = model.visual
+    print(model)
 
     model.to(device)
 

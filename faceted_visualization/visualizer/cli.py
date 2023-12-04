@@ -20,6 +20,13 @@ def parse_args() -> argparse.Namespace:
         dest=constants.MODEL
     )
     parser.add_argument(
+        "--ckpt-path",
+        default='0',
+        type=str,
+        help='model to visualize (only supports CLIP models)',
+        dest=constants.CKPT_PATH
+    )
+    parser.add_argument(
         "--layer",
         help="layer to visualize",
         dest=constants.VISUALIZATION_LAYER

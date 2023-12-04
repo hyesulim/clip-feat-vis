@@ -1,6 +1,7 @@
 import argparse
 import ast
 import os
+import os.path as osp
 import pprint
 import sys
 from typing import Callable, Dict, Tuple
@@ -10,8 +11,9 @@ import torchvision.transforms.transforms
 
 import cli, hook, image, constants, render, wb, helpers
 import logger as logger_
-import clip
+import clip.clip as clip
 import logging
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -29,12 +31,18 @@ def get_probe_weights(model_location: str) -> torch.Tensor:
 
 
 def get_model(
-    model_name,
+    model_name:str, ckpt_path:str
 ) -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
     logger.info("Loading CLIP model [ %s ].", model_name)
     if model_name in clip.available_models():
-        model, transforms = clip.load(model_name, device=device)
-        model = model.visual
+        model, _, transforms = clip.load(model_name, device=device, jit=False)
+        if len(ckpt_path) > 1:
+            model = torch.load(ckpt_path)
+            model = model.image_encoder.model.visual
+            model.to(device)
+        else:
+            model = model.visual
+
         logger.info("Finished loading model [ %s ]", model_name)
         # transforms[2, 3] is to convert image to tensor. This is not required
         del transforms.transforms[2]
@@ -66,7 +74,7 @@ def orchestrate(
 ) -> Callable:
     if save_to_file:
         logger_.add_file_handler(config)
-    model, transforms = get_model(config[constants.MODEL])
+    model, transforms = get_model(config[constants.MODEL],config[constants.CKPT_PATH])
 
     model_hook = hook.register_hooks(model)
 
@@ -84,8 +92,9 @@ def orchestrate(
         learning_rate=config[constants.LEARNING_RATE],
     )
 
+    lp_ckpt_path = osp.join(config[constants.PATH_LINEAR_PROBE], config[constants.LINEAR_PROBE_LAYER], 'version_4_10', 'model_checkpoint.pth')
     probe_weights = get_probe_weights(
-        model_location=config[constants.PATH_LINEAR_PROBE]
+        model_location=lp_ckpt_path
     )
 
     if not config[constants.USE_TRANSFORMS]:
@@ -109,10 +118,16 @@ def orchestrate(
         run_id=run_id,
     )
 
+    if len(config[constants.CKPT_PATH]) > 1:
+        ft_mod = f"_{config[constants.CKPT_PATH].split('/')[-1][:-3]}"
+    else:
+        ft_mod = ''
+
+    
     helpers.save_results(
         image_array=image_f(),
         output_directory=os.path.join(
-            config[constants.PATH_OUTPUT], config[constants.LINEAR_PROBE_LAYER], run_id
+            config[constants.PATH_OUTPUT], config[constants.OBJECTIVE]+ft_mod, config[constants.LINEAR_PROBE_LAYER], run_id
         ),
         create_dir=True,
     )

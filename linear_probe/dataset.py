@@ -10,13 +10,8 @@ from torchvision import datasets, transforms
 
 
 def get_combined_loader(
-<<<<<<< HEAD
     #root_dir="/home/nas2_userH/hyesulim/Data",
     root_dir="/data1/changdae/data_coop",
-=======
-    root_dir="/home/nas2_userH/hyesulim/Data",
-    # root_dir="/data2/changdae/data_coop/",
->>>>>>> ddf23970d719fb968ef433269dee1d128c431e63
     batch_size=256,
     subset_samples=10000,
     transform=None,
@@ -39,21 +34,18 @@ def get_combined_loader(
     # torchvision CelebA
     if target == "celeba":
         target_dataset = datasets.CelebA(
-            f"{root_dir}/celebA",
+            f"{root_dir}/celeba-dataset/",
+            #"/data1/changdae/data/",
             split="train",
             target_type="attr",
             transform=transform,
-            download=True,
+            download=False,
         )
     elif target == "sun397":
         target_dataset = datasets.SUN397(
-<<<<<<< HEAD
             f"{root_dir}/sun397/",
             #split="train",
-=======
-            f"{root_dir}/sun397/SUN397",
-            # split="train",
->>>>>>> ddf23970d719fb968ef433269dee1d128c431e63
+            #f"{root_dir}/sun397/SUN397",
             transform=transform,
             download=False,
         )

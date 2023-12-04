@@ -30,6 +30,8 @@ def parse_args():
                         help='Training mode')
     parser.add_argument('--ckpt_dir', type=str, default=None,
                         help='Test model checkpoint directory')
+    parser.add_argument('--ftckpt_dir', type=str, default=None,
+                        help='fine-tuned model ckpt directory')
 
 
     args = parser.parse_args()

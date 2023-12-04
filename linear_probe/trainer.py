@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from linear_probe.helpers import *
 from lucent.optvis.render import ModuleHook
-
+import pdb
 
 def train(
     feature_ext,
@@ -20,7 +20,11 @@ def train(
     obj="layer1_2_relu3",
 ):
     # set save_dir for logging
-    base_dir = os.path.join(args.root_code, "logs", args.lp_dataset, args.model_arch, args.obj)
+    model_name = args.model_arch
+    if args.ftckpt_dir is not None:
+        model_name = f"_{args.ftckpt_dir.split('/')[-1][:-3]}"
+
+    base_dir = os.path.join(args.root_code, "logs", args.lp_dataset, model_name, args.obj)
     save_dir = make_save_dir(base_dir)
     log_message(str(args), save_dir)
 
@@ -36,7 +40,7 @@ def train(
                     continue
                 features["_".join(prefix + [name])] = ModuleHook(layer)
                 hook_layers(layer, prefix=prefix + [name])
-
+    #pdb.set_trace()
     hook_layers(feature_ext)
 
     # make linear probing model trainable
@@ -100,9 +104,7 @@ def train(
         log_message(msg, save_dir)
 
         if (epoch + 1) % 5 == 0:
-            save_dir_temp = save_dir + f'_{epoch+1}'
-            os.makedirs(save_dir_temp, exist_ok=True)
-            save_model(linear_probe, save_dir_temp)
+            save_model(linear_probe, save_dir, epoch=str(epoch + 1))
 
     save_model(linear_probe, save_dir)
 
