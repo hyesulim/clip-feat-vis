@@ -24,7 +24,8 @@ def optimize(num_iterations: int,
              model_hook: Callable,
              wandb_object: wb.WandB,
              device: str = "cpu",
-             run_id: str = ""):
+             run_id: str = "",
+             image_name: str = "render"):
     logger.info("Starting optimization process [ run_id = %s ]...", run_id)
 
     for j in range(num_iterations):
@@ -52,11 +53,11 @@ def optimize(num_iterations: int,
                               probe_weights.to(device))
 
             loss.backward()
-            if j % 100 == 0:
+            if (j % 100 == 0) or (j == (num_iterations - 1)):
                 logger.info("Epoch: %d/%d: Loss = %.7f :: Learning Rate = %.7f", j + 1, num_iterations, loss,
                             optimizer.param_groups[0]['lr'])
                 wandb_object.log_metrics(metrics={'loss': loss, }, step=j)
-                wandb_object.log_image(image=image.convert_to_PIL(image_function()), name="render")
+                wandb_object.log_image(image=image.convert_to_PIL(image_function()), name=image_name)
             return loss
 
         optimizer.step(closure)

@@ -1,6 +1,9 @@
+from typing import List
+
 import numpy as np
 import torch
 from PIL import Image
+import torchvision.transforms.v2
 
 # based on code from https://github.com/greentfrapp/lucent/tree/dev/lucent/optvis/param
 
@@ -12,19 +15,18 @@ max_norm_svd_sqrt = np.max(np.linalg.norm(color_correlation_svd_sqrt, axis=0))
 color_correlation_normalized = color_correlation_svd_sqrt / max_norm_svd_sqrt
 
 
-def _linear_decorrelate_color(tensor):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+def _linear_decorrelate_color(tensor, device):
     t_permute = tensor.permute(0, 2, 3, 1)
     t_permute = torch.matmul(t_permute, torch.tensor(color_correlation_normalized.T).to(device))
     tensor = t_permute.permute(0, 3, 1, 2)
     return tensor
 
 
-def to_valid_rgb(image_f, decorrelate=False):
+def to_valid_rgb(image_f, decorrelate=False, device=None):
     def inner():
         image = image_f()
         if decorrelate:
-            image = _linear_decorrelate_color(image)
+            image = _linear_decorrelate_color(image, device)
         return torch.sigmoid(image)
 
     return inner
@@ -85,9 +87,9 @@ def generate_img(w, h=None, sd=None, batch=None, decorrelate=True, fft=True, cha
     param_f = fft_image if fft else pixel_image
     params, image_f = param_f(shape, sd=sd, device=device)
     if channels:
-        output = to_valid_rgb(image_f, decorrelate=False)
+        output = to_valid_rgb(image_f, decorrelate=False, device=device)
     else:
-        output = to_valid_rgb(image_f, decorrelate=decorrelate)
+        output = to_valid_rgb(image_f, decorrelate=decorrelate, device=device)
     return params, output
 
 def tensor_to_img_array(tensor):
@@ -107,3 +109,29 @@ def convert_to_PIL(tensor) -> Image.Image:
     if len(image.shape) == 4:
         image = np.concatenate(image, axis=1)
     return Image.fromarray(image)
+
+
+def consolidate_transforms(use_clip_transforms: bool, use_standard_transforms: bool,
+                           clip_transforms: torchvision.transforms.Compose):
+    if not use_clip_transforms:
+        clip_transforms = []
+
+    if use_standard_transforms:
+        standard_transforms = get_standard_transforms()
+    else:
+        standard_transforms = []
+    transforms = clip_transforms + standard_transforms
+    if len(transforms) > 0:
+        transforms = torchvision.transforms.v2.Compose(transforms=transforms)
+    else:
+        transforms = None
+    return transforms
+
+
+def get_standard_transforms() -> List:
+    return [
+        torchvision.transforms.v2.RandomAffine(degrees=0, translate=(0.03, 0.03)),
+        torchvision.transforms.v2.RandomAffine(degrees=0, scale=(0.9, 1.1)),
+        torchvision.transforms.v2.RandomRotation((-10, 10)),
+        torchvision.transforms.v2.RandomAffine(degrees=0, translate=(0.015, 0.015)),
+    ]

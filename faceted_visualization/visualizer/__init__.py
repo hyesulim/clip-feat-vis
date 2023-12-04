@@ -1,1 +1,1 @@
-import visualizer.logger
+import faceted_visualization.visualizer.logger
