@@ -14,18 +14,23 @@ else
  RANDOM_SEED=1
 fi
 
-FACETED_VIS_HOME=/Users/rohan/repositories/11785-f23-prj/faceted_visualization/
+FACETED_VIS_HOME=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization
 
-CONFIG_FILE_PATH=/Users/rohan/repositories/11785-f23-prj/faceted_visualization/visualizer/config/run_configs.json
+
+CONFIG_FILE_PATH=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization/visualizer/config/run_configs.json
 OPTIMIZER="AdamW"
-MODEL="RN50"
-LAYER="layer4_2_conv3"
-LINEAR_PROBE_LAYER="layer1_2_relu3"
+# MODEL="RN50"
+MODEL="RN50x4"
+# LAYER="layer4_2_conv3"
+LAYER="layer4_5_conv3"
+# LINEAR_PROBE_LAYER="layer1_2_relu3"
+LINEAR_PROBE_LAYER="layer1_0_conv3"
 OBJECTIVE="channel"
 LEARNING_RATE=0.05
 WANDB_RUN_NAME="local-testing-with-transforms"
 CHANNEL=512
-LINEAR_PROBE_PATH=/Users/rohan/repositories/11785-f23-prj/faceted_visualization/linear_probes/model_checkpoint\ \(1\).pth
+# LINEAR_PROBE_PATH=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/linear_probe/logs/celeba/layer1_2_relu3/version_29/model_checkpoint.pth
+LINEAR_PROBE_PATH=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/logs/celeba/RN50x4/layer1_0_conv3/version_2/model_checkpoint-last.pth
 NEURON_X=3
 NEURON_Y=3
 IMAGE_W=224

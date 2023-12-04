@@ -1,7 +1,7 @@
 {
-  "output_directory": "/Users/rohan/repositories/11785-f23-prj/faceted_visualization/runs",
-  "wandb_api_key": "",
-  "wandb_entity": "rohanprasad",
+  "output_directory": "/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization/runs",
+  "wandb_api_key": "1fb27221b1ce89ac337a058aca6a524ca2387e44",
+  "wandb_entity": "hyesulim-hs",
   "wandb_project": "idl-project"
 
 }
