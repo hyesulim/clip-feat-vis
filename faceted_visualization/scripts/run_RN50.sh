@@ -17,13 +17,16 @@ fi
 # Paths to be set by the user
 FACETED_VIS_HOME=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization
 CONFIG_FILE_PATH=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization/visualizer/config/run_configs.json
-LINEAR_PROBE_PATH=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization/linear_probes/celeba/RN50x4
+LINEAR_PROBE_PATH=/home/nas2_userH/hyesulim/Dev/2023/11785-f23-prj/faceted_visualization/linear_probes/air
 
 # model settings
-MODELS=("RN50x4")
-LAYERS=("layer4_5_conv3")
-LINEAR_PROBE_LAYERS=("layer1_0_conv3" "layer1_3_conv3" "layer2_5_conv3" "layer3_9_conv3" "layer1_3_relu3" "layer2_5_relu3")
-# LINEAR_PROBE_LAYERS=("layer1_3_relu3" "layer2_5_relu3")
+# MODELS=("RN50x4")
+# LAYERS=("layer4_5_conv3")
+# LINEAR_PROBE_LAYERS=("layer1_0_conv3" "layer1_3_conv3" "layer2_5_conv3" "layer3_9_conv3" "layer1_3_relu3" "layer2_5_relu3")
+MODELS=("RN50")
+LAYERS=("layer4_2_conv3")
+# LINEAR_PROBE_LAYERS=("layer1_2_relu3" "layer4_2_relu2")
+LINEAR_PROBE_LAYERS=("layer4_2_relu2")
 OBJECTIVES=("channel" "neuron")
 
 OPTIMIZERS=("AdamW" "Adam" "SGD")
@@ -36,7 +39,7 @@ IMAGE_WS=(224)
 IMAGE_HS=(224)
 
 # other settings
-WANDB_RUN_BASE="celeba"
+WANDB_RUN_BASE="air"
 FFT=(0 1)
 DECORRELATE=(0 1)
 WANDBFLAGS=("--wandb") # "--no-wandb" 
@@ -61,10 +64,10 @@ for model in ${MODELS[@]}; do
                                 # you can change string like this: 
                                 # "$model"_"$layer"_"$lp"_"$obj"_"$opt"_"$it"_"$lr"_"$channel"
                                 WANDB_RUN_NAME="$WANDB_RUN_BASE-$model-$lp-$obj-$opt-$it-$lr-$channel-$neuron_x-$neuron_y-$image_w-$image_h-$fft-$decorrelate"
-                                CUDA_VISIBILE_DEVICES=1 python $FACETED_VIS_HOME/visualizer/main.py \
+                                CUDA_VISIBLE_DEVICES=1 python $FACETED_VIS_HOME/visualizer/main.py \
                                   --random-seed $RANDOM_SEED \
                                   --config-file-path $CONFIG_FILE_PATH \
-                                  --linear-probe-path "$LINEAR_PROBE_PATH/$lp.pth" \
+                                  --linear-probe-path "$LINEAR_PROBE_PATH/$model/$lp.pth" \
                                   --model $model \
                                   --layer $layer \
                                   --linear-probe-layer $lp \
