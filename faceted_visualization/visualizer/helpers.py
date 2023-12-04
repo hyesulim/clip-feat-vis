@@ -21,8 +21,17 @@ def combine_properties(shell_arguments: argparse.Namespace, properties: dict) ->
             merged[k] = v
     return merged
 
+def random_seed(length):
+    random.seed()
+    min = 10**(length-1)
+    max = 9*min + (min-1)
+    return random.randint(min, max)
+
 
 def set_seed(seed):
+    if seed is None:
+        seed = random_seed(10)
+    logger.info("Setting random seed to %s", str(seed))
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
@@ -30,6 +39,7 @@ def set_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
+    return seed
 
 
 def save_results(image_array: torch.Tensor, output_directory: str, create_dir: bool = True):

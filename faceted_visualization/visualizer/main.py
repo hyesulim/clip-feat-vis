@@ -62,6 +62,7 @@ def orchestrate(config: Dict, wandb_object: wb.WandB = None, save_to_file: bool 
     model, clip_transforms = get_model(config[constants.MODEL], device=device)
 
     model_hook = hook.register_hooks(model)
+    helpers.set_seed(config.get(constants.RANDOM_SEED, None))
 
     params, image_f = image.generate_img(w=config[constants.IMAGE_WIDTH],
                                          h=config[constants.IMAGE_HEIGHT],
