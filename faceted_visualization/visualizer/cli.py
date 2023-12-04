@@ -138,6 +138,14 @@ def parse_args() -> argparse.Namespace:
         dest=constants.IMG_FFT,
         type=int
     )
+    parser.add_argument(
+        "--use-std-transforms",
+        help="select 0 if you do not want to use the standard transforms for augmentation. "
+             "Anything else will enable the use of standard transforms.",
+        dest=constants.USE_STD_TRANSFORMS,
+        type=int,
+        default=0
+    )
     args = parser.parse_args()
     return args
 

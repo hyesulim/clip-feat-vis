@@ -7,25 +7,27 @@ from typing import Callable, Dict, Tuple
 
 import torch
 import torchvision.transforms.transforms
+import torchvision.transforms.v2
 
 import cli, hook, image, constants, render, wb, helpers
 import logger as logger_
 import clip
 import logging
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 logger = logging.getLogger()
 run_id = logger_.run_id
 
 
-def get_probe_weights(model_location: str) -> torch.Tensor:
+def get_probe_weights(model_location: str, device: str) -> torch.Tensor:
     logger.info("Retrieving weights of linear probe [ path = %s ]", model_location)
     linear_probe = torch.load(model_location, map_location=device)
     if "linear.weight" in linear_probe.keys():
         return linear_probe["linear.weight"][0]
     elif "weight" in linear_probe.keys():
         return linear_probe["weight"][0]
+
 
 
 def get_model(
@@ -40,7 +42,7 @@ def get_model(
         del transforms.transforms[2]
         del transforms.transforms[2]
         logger.info("Finished loading transforms [ %s ]", transforms)
-        return model, transforms
+        return model, transforms.transforms
     else:
         raise RuntimeError(
             "Unable to locate CLIP model. Possible values are {!s}".format(
@@ -66,9 +68,10 @@ def orchestrate(
 ) -> Callable:
     if save_to_file:
         logger_.add_file_handler(config)
-    model, transforms = get_model(config[constants.MODEL])
+    model, clip_transforms = get_model(config[constants.MODEL], device=device)
 
     model_hook = hook.register_hooks(model)
+    helpers.set_seed(config.get(constants.RANDOM_SEED, None))
 
     params, image_f = image.generate_img(
         w=config[constants.IMAGE_WIDTH],
@@ -84,38 +87,36 @@ def orchestrate(
         learning_rate=config[constants.LEARNING_RATE],
     )
 
-    probe_weights = get_probe_weights(
-        model_location=config[constants.PATH_LINEAR_PROBE]
-    )
+    probe_weights = get_probe_weights(model_location=config[constants.PATH_LINEAR_PROBE], device=device)
 
-    if not config[constants.USE_TRANSFORMS]:
-        transforms = None
-
-    render.optimize(
-        num_iterations=config[constants.NUMBER_OF_ITERATIONS],
-        transforms=transforms,
-        image_function=image_f,
-        model=model,
-        channel=config[constants.CHANNEL],
-        objective=config[constants.OBJECTIVE],
-        layer=config[constants.VISUALIZATION_LAYER],
-        linear_probe_layer=config[constants.LINEAR_PROBE_LAYER],
-        probe_weights=probe_weights,
-        optimizer=optimizer,
-        model_hook=model_hook,
-        neuron_x=config.get(constants.NEURON_X, None),
-        neuron_y=config.get(constants.NEURON_Y, None),
-        wandb_object=wandb_object,
-        run_id=run_id,
+    transforms = image.consolidate_transforms(
+        use_clip_transforms=config[constants.USE_TRANSFORMS],
+        use_standard_transforms=config[constants.USE_STD_TRANSFORMS],
+        clip_transforms=clip_transforms
     )
+    logger.info("Final list of transforms = %s", transforms.transforms if transforms is not None else "NA")
 
-    helpers.save_results(
-        image_array=image_f(),
-        output_directory=os.path.join(
-            config[constants.PATH_OUTPUT], config[constants.LINEAR_PROBE_LAYER], run_id
-        ),
-        create_dir=True,
-    )
+    render.optimize(num_iterations=config[constants.NUMBER_OF_ITERATIONS],
+                    transforms=transforms,
+                    image_function=image_f,
+                    model=model,
+                    channel=config[constants.CHANNEL],
+                    objective=config[constants.OBJECTIVE],
+                    layer=config[constants.VISUALIZATION_LAYER],
+                    linear_probe_layer=config[constants.LINEAR_PROBE_LAYER],
+                    probe_weights=probe_weights,
+                    optimizer=optimizer,
+                    model_hook=model_hook,
+                    neuron_x=config.get(constants.NEURON_X, None),
+                    neuron_y=config.get(constants.NEURON_Y, None),
+                    wandb_object=wandb_object,
+                    run_id=run_id,
+                    device=device)
+
+    helpers.save_results(image_array=image_f(),
+                         output_directory=os.path.join(config[constants.PATH_OUTPUT], run_id),
+                         create_dir=True)
+
 
     return image_f
 

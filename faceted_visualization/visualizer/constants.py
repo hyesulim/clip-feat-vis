@@ -28,6 +28,7 @@ WANDB_ENABLED = "wandb_enabled"
 NEURON_X = "neuron_x"
 NEURON_Y = "neuron_y"
 USE_TRANSFORMS = "use_transforms"
+USE_STD_TRANSFORMS = "use_std_transforms"
 
 ADAM = "Adam"
 ADAM_W = "AdamW"
