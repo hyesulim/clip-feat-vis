@@ -92,7 +92,16 @@ def orchestrate(
         learning_rate=config[constants.LEARNING_RATE],
     )
 
-    lp_ckpt_path = osp.join(config[constants.PATH_LINEAR_PROBE], config[constants.LINEAR_PROBE_LAYER], 'version_4_10', 'model_checkpoint.pth')
+    # Find the last version among LP ckpts
+    lp_dir = osp.join(config[constants.PATH_LINEAR_PROBE], config[constants.LINEAR_PROBE_LAYER])
+    existing_versions = [
+        d
+        for d in os.listdir(lp_dir)
+        if os.path.isdir(os.path.join(lp_dir, d)) and d.startswith("version_")
+    ]
+    latest_version = max([int(v.split("_")[1]) for v in existing_versions])
+    # Use 20 epoch weight by default
+    lp_ckpt_path = osp.join(lp_dir, f"version_{last_version}", 'model_checkpoint-10.pth')
     probe_weights = get_probe_weights(
         model_location=lp_ckpt_path
     )

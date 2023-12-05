@@ -14,7 +14,7 @@ else
  RANDOM_SEED=1
 fi
 
-for lpd in "aircraft" "sun" "flowers"
+for lpd in "aircraft" "sun" "celeb"
 do
 LP_DATASET=${lpd}
 

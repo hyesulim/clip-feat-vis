@@ -60,13 +60,18 @@ def main(args):
     # model, preprocess = clip.load(backbone, device=device)
     # model = model.visual
     model, _, preprocess = clip.load(args.model_arch, device=device, jit=False)
-    if args.ftckpt_dir:
+    if len(args.ftckpt_dir) > 1:
         model = torch.load(args.ftckpt_dir)
-        model = model.image_encoder.model.visual
+        if args.ftckpt_dir.split('/')[-1][:-3].split('_')[1] == 'FT':
+            model = model.image_encoder.model.visual
+        else:
+            model = model.model.visual
     else:
         model = model.visual
     print(model)
-
+    print('turn off gradients')
+    for param in model.parameters():
+        param.requires_grad = False
     model.to(device)
 
     print(f"CLIP-{backbone} lodad")
@@ -84,9 +89,9 @@ def main(args):
 
     print("Dataset loaded")
 
-    # import pdb
+    import pdb
 
-    # pdb.set_trace()
+    #pdb.set_trace()
     # %%
     # Linear probing model
 

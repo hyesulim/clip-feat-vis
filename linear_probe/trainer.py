@@ -21,7 +21,7 @@ def train(
 ):
     # set save_dir for logging
     model_name = args.model_arch
-    if args.ftckpt_dir is not None:
+    if len(args.ftckpt_dir) > 1:
         model_name = f"_{args.ftckpt_dir.split('/')[-1][:-3]}"
 
     base_dir = os.path.join(args.root_code, "logs", args.lp_dataset, model_name, args.obj)
