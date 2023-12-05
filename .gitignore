@@ -135,6 +135,9 @@ logs/
 *.txt
 *.pth
 *.jpg
+*.png
 runs/
 
 **/wandb
+faceted_visualization/outputs
+artifcat/
