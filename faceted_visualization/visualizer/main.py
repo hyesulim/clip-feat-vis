@@ -8,6 +8,7 @@ from typing import Callable, Dict, Tuple
 
 import torch
 import torchvision.transforms.transforms
+import torchvision.transforms.v2
 
 import cli, hook, image, constants, render, wb, helpers
 import logger as logger_
@@ -21,7 +22,7 @@ logger = logging.getLogger()
 run_id = logger_.run_id
 
 
-def get_probe_weights(model_location: str) -> torch.Tensor:
+def get_probe_weights(model_location: str, device: str) -> torch.Tensor:
     logger.info("Retrieving weights of linear probe [ path = %s ]", model_location)
     linear_probe = torch.load(model_location, map_location=device)
     if "linear.weight" in linear_probe.keys():
@@ -30,8 +31,9 @@ def get_probe_weights(model_location: str) -> torch.Tensor:
         return linear_probe["weight"][0]
 
 
+
 def get_model(
-    model_name:str, ckpt_path:str
+    model_name:str, ckpt_path:str, device=device
 ) -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
     logger.info("Loading CLIP model [ %s ].", model_name)
     if model_name in clip.available_models():
@@ -48,7 +50,7 @@ def get_model(
         del transforms.transforms[2]
         del transforms.transforms[2]
         logger.info("Finished loading transforms [ %s ]", transforms)
-        return model, transforms
+        return model, transforms.transforms
     else:
         raise RuntimeError(
             "Unable to locate CLIP model. Possible values are {!s}".format(
@@ -74,9 +76,11 @@ def orchestrate(
 ) -> Callable:
     if save_to_file:
         logger_.add_file_handler(config)
-    model, transforms = get_model(config[constants.MODEL],config[constants.CKPT_PATH])
+    model, clip_transforms = get_model(config[constants.MODEL],config[constants.CKPT_PATH], device=device)
+    
 
     model_hook = hook.register_hooks(model)
+    helpers.set_seed(config.get(constants.RANDOM_SEED, None))
 
     params, image_f = image.generate_img(
         w=config[constants.IMAGE_WIDTH],
@@ -100,32 +104,40 @@ def orchestrate(
         if os.path.isdir(os.path.join(lp_dir, d)) and d.startswith("version_")
     ]
     latest_version = max([int(v.split("_")[1]) for v in existing_versions])
-    # Use 20 epoch weight by default
-    lp_ckpt_path = osp.join(lp_dir, f"version_{last_version}", 'model_checkpoint-10.pth')
+    # Use 10 epoch weight by default
+    lp_ckpt_path = osp.join(lp_dir, f"version_{latest_version}", 'model_checkpoint-10.pth')
     probe_weights = get_probe_weights(
-        model_location=lp_ckpt_path
+        model_location=lp_ckpt_path, device=device
     )
+    #probe_weights = get_probe_weights(model_location=config[constants.PATH_LINEAR_PROBE], device=device)
 
-    if not config[constants.USE_TRANSFORMS]:
-        transforms = None
-
-    render.optimize(
-        num_iterations=config[constants.NUMBER_OF_ITERATIONS],
-        transforms=transforms,
-        image_function=image_f,
-        model=model,
-        channel=config[constants.CHANNEL],
-        objective=config[constants.OBJECTIVE],
-        layer=config[constants.VISUALIZATION_LAYER],
-        linear_probe_layer=config[constants.LINEAR_PROBE_LAYER],
-        probe_weights=probe_weights,
-        optimizer=optimizer,
-        model_hook=model_hook,
-        neuron_x=config.get(constants.NEURON_X, None),
-        neuron_y=config.get(constants.NEURON_Y, None),
-        wandb_object=wandb_object,
-        run_id=run_id,
+    transforms = image.consolidate_transforms(
+        use_clip_transforms=config[constants.USE_TRANSFORMS],
+        use_standard_transforms=config[constants.USE_STD_TRANSFORMS],
+        clip_transforms=clip_transforms
     )
+    logger.info("Final list of transforms = %s", transforms.transforms if transforms is not None else "NA")
+
+    render.optimize(num_iterations=config[constants.NUMBER_OF_ITERATIONS],
+                    transforms=transforms,
+                    image_function=image_f,
+                    model=model,
+                    channel=config[constants.CHANNEL],
+                    objective=config[constants.OBJECTIVE],
+                    layer=config[constants.VISUALIZATION_LAYER],
+                    linear_probe_layer=config[constants.LINEAR_PROBE_LAYER],
+                    probe_weights=probe_weights,
+                    optimizer=optimizer,
+                    model_hook=model_hook,
+                    neuron_x=config.get(constants.NEURON_X, None),
+                    neuron_y=config.get(constants.NEURON_Y, None),
+                    wandb_object=wandb_object,
+                    run_id=run_id,
+                    device=device)
+
+    helpers.save_results(image_array=image_f(),
+                         output_directory=os.path.join(config[constants.PATH_OUTPUT], run_id),
+                         create_dir=True)
 
     if len(config[constants.CKPT_PATH]) > 1:
         ft_mod = f"_{config[constants.CKPT_PATH].split('/')[-1][:-3]}"

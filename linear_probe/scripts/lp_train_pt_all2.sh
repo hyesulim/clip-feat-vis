@@ -21,26 +21,26 @@ do
 # --obj $obj \
 # --model_arch $model_arch
 
-CUDA_VISIBLE_DEVICES=3 python3 main.py \
---lp_dataset 'air' \
---optim 'sgd' \
---lr 1e-3 \
---batch_size 256 \
---subset_samples 3000 \
---num_epochs 10 \
---ftckpt_dir $ftp \
---obj $obj \
---model_arch $model_arch
-
 # CUDA_VISIBLE_DEVICES=3 python3 main.py \
-# --lp_dataset 'sun397' \
+# --lp_dataset 'air' \
 # --optim 'sgd' \
 # --lr 1e-3 \
 # --batch_size 256 \
-# --subset_samples 10000 \
+# --subset_samples 3000 \
 # --num_epochs 20 \
 # --ftckpt_dir $ftp \
 # --obj $obj \
 # --model_arch $model_arch
+
+CUDA_VISIBLE_DEVICES=2 python3 main.py \
+--lp_dataset 'sun397' \
+--optim 'sgd' \
+--lr 1e-3 \
+--batch_size 256 \
+--subset_samples 10000 \
+--num_epochs 10 \
+--ftckpt_dir $ftp \
+--obj $obj \
+--model_arch $model_arch
 
 done

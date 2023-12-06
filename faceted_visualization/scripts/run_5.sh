@@ -1,20 +1,20 @@
 #!/bin/bash
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  RANDOM_SEED=$(date +%s%N)
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-  RANDOM_SEED=$(gdate +%s%N)
-elif [[ "$OSTYPE" == "cygwin" ]]; then
-  RANDOM_SEED=$(date +%s%N)
-elif [[ "$OSTYPE" == "msys" ]]; then
- RANDOM_SEED=$(date +%s%N)
-elif [[ "$OSTYPE" == "freebsd"* ]]; then
- RANDOM_SEED=$(date +%s%N)
-else
- RANDOM_SEED=1
-fi
+# if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+#   RANDOM_SEED=$(date +%s%N)
+# elif [[ "$OSTYPE" == "darwin"* ]]; then
+#   RANDOM_SEED=$(gdate +%s%N)
+# elif [[ "$OSTYPE" == "cygwin" ]]; then
+#   RANDOM_SEED=$(date +%s%N)
+# elif [[ "$OSTYPE" == "msys" ]]; then
+#  RANDOM_SEED=$(date +%s%N)
+# elif [[ "$OSTYPE" == "freebsd"* ]]; then
+#  RANDOM_SEED=$(date +%s%N)
+# else
+RANDOM_SEED=1
+#fi
 
-for lpd in "aircraft" "sun" "celeb"
+for lpd in "celeba" "sun397" "aircraft"
 do
 LP_DATASET=${lpd}
 
@@ -22,29 +22,28 @@ LP_DATASET=${lpd}
 FT_CKPT_PATH='/data1/changdae/11785-f23-prj/RN50x4_FT.pt'
 FACETED_VIS_HOME=/data1/changdae/11785-f23-prj/faceted_visualization
 CONFIG_FILE_PATH=/data1/changdae/11785-f23-prj/faceted_visualization/visualizer/config/run_configs.json
-LINEAR_PROBE_PATH=/data1/changdae/11785-f23-prj/faceted_visualization/linear_probes/${LP_DATASET}
-OUT_PATH=/data1/changdae/11785-f23-prj/faceted_visualization/runs/${LP_DATASET}
+LINEAR_PROBE_PATH=/data1/changdae/11785-f23-prj/linear_probe/logs/${LP_DATASET}/_RN50x4_FT
+OUT_PATH=/data1/changdae/11785-f23-prj/faceted_visualization/runs/${LP_DATASET}/RN50x4_FT
 
 # model settings
 MODELS=("RN50x4")
 LAYERS=("layer4_5_conv3")
-LINEAR_PROBE_LAYERS=("layer1_3_conv3" "layer2_5_conv3" "layer3_9_conv3")
-#LINEAR_PROBE_LAYERS=("layer1_3_relu" "layer2_5_relu")
+LINEAR_PROBE_LAYERS=("layer1_3_relu" "layer2_5_relu" "layer3_9_relu")
 OBJECTIVES=("neuron")
 
 #OPTIMIZERS=("AdamW" "Adam" "SGD")
 OPTIMIZERS=("Adam")
 ITERATIONS=(512)
 LEARNING_RATES=(5e-2)
-CHANNELS=(512)
-NEURON_XS=(3)
-NEURON_YS=(3)
+CHANNELS=(1 100 200 300 400 512 600 700 800 900 1000)
+NEURON_XS=(5)
+NEURON_YS=(5)
 IMAGE_WS=(224)
 IMAGE_HS=(224)
 
 # other settings
 #WANDB_RUN_NAME="local-testing-with-transforms"
-WANDB_RUN_NAME="idl_fvis"
+WANDB_PROJECT=idl_fvis_${lpd}
 FFT=(1)
 DECORRELATE=(1)
 #WANDBFLAGS=("--no-wandb") # "--wandb" 
@@ -92,7 +91,8 @@ for model in ${MODELS[@]}; do
                                   --decorrelate $decorrelate \
                                   $wandb \
                                   $transforms \
-                                  --wandb-run-name $WANDB_RUN_NAME 
+                                  --wandb-run-name tar:${layer}_c${channel}_${lp}_${obj}_nx${neuron_x}_ny${neuron_y} \
+                                  --wandb-pj-name $WANDB_PROJECT
                               done
                             done
                           done

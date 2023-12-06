@@ -61,6 +61,6 @@ def register_hooks(model: torch.nn.Module) -> Callable:
         if raw:
             return hook_obj
         else:
-            return hook_obj.features
+            return hook_obj.output
 
     return hook
