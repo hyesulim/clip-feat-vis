@@ -31,8 +31,7 @@ def get_probe_weights(model_location: str, device: str) -> torch.Tensor:
 
 
 def get_model(
-    model_name,
-) -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
+    model_name, device="cpu") -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
     logger.info("Loading CLIP model [ %s ].", model_name)
     if model_name in clip.available_models():
         model, transforms = clip.load(model_name, device=device)
@@ -64,8 +63,7 @@ def get_optimizer(parameters, optimizer_name: str, learning_rate: float):
 
 
 def orchestrate(
-    config: Dict, wandb_object: wb.WandB = None, save_to_file: bool = False
-) -> Callable:
+    config: Dict, wandb_object: wb.WandB = None, save_to_file: bool = False, device="cpu") -> Callable:
     if save_to_file:
         logger_.add_file_handler(config)
     model, clip_transforms = get_model(config[constants.MODEL], device=device)
