@@ -29,7 +29,10 @@ def get_probe_weights(model_location: str, device: str) -> torch.Tensor:
         return linear_probe["weight"][0]
 
 
-def get_model(model_name, device) -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
+
+def get_model(
+    model_name,
+) -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
     logger.info("Loading CLIP model [ %s ].", model_name)
     if model_name in clip.available_models():
         model, transforms = clip.load(model_name, device=device)
@@ -41,7 +44,11 @@ def get_model(model_name, device) -> Tuple[torch.nn.Module, torchvision.transfor
         logger.info("Finished loading transforms [ %s ]", transforms)
         return model, transforms.transforms
     else:
-        raise RuntimeError("Unable to locate CLIP model. Possible values are {!s}".format(clip.available_models()))
+        raise RuntimeError(
+            "Unable to locate CLIP model. Possible values are {!s}".format(
+                clip.available_models()
+            )
+        )
 
 
 def get_optimizer(parameters, optimizer_name: str, learning_rate: float):
@@ -56,7 +63,9 @@ def get_optimizer(parameters, optimizer_name: str, learning_rate: float):
         return torch.optim.SGD(parameters, lr=learning_rate)
 
 
-def orchestrate(config: Dict, wandb_object: wb.WandB = None, save_to_file: bool = False, device: str = 'cpu') -> Callable:
+def orchestrate(
+    config: Dict, wandb_object: wb.WandB = None, save_to_file: bool = False
+) -> Callable:
     if save_to_file:
         logger_.add_file_handler(config)
     model, clip_transforms = get_model(config[constants.MODEL], device=device)
@@ -64,13 +73,19 @@ def orchestrate(config: Dict, wandb_object: wb.WandB = None, save_to_file: bool 
     model_hook = hook.register_hooks(model)
     helpers.set_seed(config.get(constants.RANDOM_SEED, None))
 
-    params, image_f = image.generate_img(w=config[constants.IMAGE_WIDTH],
-                                         h=config[constants.IMAGE_HEIGHT],
-                                         decorrelate=bool(config[constants.IMG_DECORRELATE]),
-                                         fft=bool(config[constants.IMG_FFT]), device=device)
+    params, image_f = image.generate_img(
+        w=config[constants.IMAGE_WIDTH],
+        h=config[constants.IMAGE_HEIGHT],
+        decorrelate=bool(config[constants.IMG_DECORRELATE]),
+        fft=bool(config[constants.IMG_FFT]),
+        device=device,
+    )
 
-    optimizer = get_optimizer(parameters=params, optimizer_name=config[constants.OPTIMIZER],
-                              learning_rate=config[constants.LEARNING_RATE])
+    optimizer = get_optimizer(
+        parameters=params,
+        optimizer_name=config[constants.OPTIMIZER],
+        learning_rate=config[constants.LEARNING_RATE],
+    )
 
     probe_weights = get_probe_weights(model_location=config[constants.PATH_LINEAR_PROBE], device=device)
 
@@ -102,6 +117,7 @@ def orchestrate(config: Dict, wandb_object: wb.WandB = None, save_to_file: bool 
                          output_directory=os.path.join(config[constants.PATH_OUTPUT], run_id),
                          create_dir=True)
 
+
     return image_f
 
 
@@ -123,11 +139,10 @@ if __name__ == "__main__":
             entity=properties[constants.WANDB_ENTITY],
             project=properties[constants.WANDB_PROJECT],
             run_name=properties.get(constants.WANDB_RUN_NAME, None),
-            config=properties
+            config=properties,
         )
         orchestrate(config=properties, save_to_file=True, wandb_object=wandb_object_)
     except Exception as e:
         logger.exception("Something went wrong.")
         if wandb_object_ is not None:
             wandb_object_.close()
-

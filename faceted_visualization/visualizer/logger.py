@@ -1,15 +1,19 @@
 import ast
-import sys
-import logging
-import constants
-import os
 import datetime
+import logging
+import os
+import sys
 
-now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+import constants
+
+now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 run_id = f"run_{now}"
 
-logging.basicConfig(force=True, level="INFO",
-                    format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+logging.basicConfig(
+    force=True,
+    level="INFO",
+    format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+)
 logger = logging.getLogger()
 init_stream = True
 
@@ -33,5 +37,8 @@ def add_file_handler(properties):
     if init_filehandler:
         file_handler = logging.FileHandler(os.path.join(log_directory, "output.log"))
         file_handler.setFormatter(
-            logging.Formatter(fmt="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"))
+            logging.Formatter(
+                fmt="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"
+            )
+        )
         logger.addHandler(file_handler)
