@@ -6,7 +6,7 @@ Hyesu Lim, Changdae Oh, Junhyeok Park, Rohan Prasad
 
 <br>
 
-## Initial Setup
+## Quick Start
 1. Prepare the basic experiment pipeline by cloning this repository.
 ``` shell
 git clone https://github.com/hyesulim/clip-feat-vis.git
@@ -18,7 +18,7 @@ conda create -n mmn python=3.11
 conda activate mmn
 pip install -r requirements.txt
 ```
-3. A sample Jupyter notebook is included inside the `notebooks`. This should help you get started.
+3. A sample Jupyter notebook is included inside `notebooks`. This should help you get started.
 
 <br>
 

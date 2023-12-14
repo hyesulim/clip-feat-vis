@@ -33,11 +33,11 @@ def get_probe_weights(model_location: str, device: str) -> torch.Tensor:
 
 
 def get_model(
-    model_name, ckpt_path: str, device="cpu"
+    model_name, ckpt_path: str = [], device="cpu", jit=False
 ) -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
     logger.info("Loading CLIP model [ %s ].", model_name)
     if model_name in clip.available_models():
-        model, _, transforms = clip.load(model_name, device=device, jit=False)
+        model, transforms = clip.load(model_name, device=device, jit=jit)
         if len(ckpt_path) > 1:
             model = torch.load(ckpt_path)
             model = model.image_encoder.model.visual
