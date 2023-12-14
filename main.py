@@ -10,21 +10,29 @@ import pdb
 from PIL import Image as im 
 
 from datetime import datetime
-
+import pickle
 
 def main(args):
     set_seed(args.seed)
 
     model_flag, backbone = args.backbone.split('-')
     if model_flag == 'CLIP' :
-        model, preprocess = clip.load(backbone, device=args.device)
         if args.ckpt_path:
-            model.load_state_dict(torch.load(args.ckpt_path))
-        model = model.visual
+            #model.load_state_dict(torch.load(args.ckpt_path), strict=False )
+            # with open(args.ckpt_path, 'rb') as f:
+            #     model = pickle.load(f)
+            model = torch.load(args.ckpt_path)
+            model = model.image_encoder.model.visual
+            # import pdb
+            # pdb.set_trace()
+        else:
+            model, preprocess = clip.load(backbone, device=args.device)
+            model = model.visual
     else:
         raise ValueError('not implemented yet')
 
-    model.to(args.device).eval()
+    model = model.to(args.device).eval()
+    print(model)
 
     if args.cppn:
         param_f = lambda: param.cppn(224)

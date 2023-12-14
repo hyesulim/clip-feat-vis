@@ -2,6 +2,7 @@
 # Paths
 PATH_CONFIG_FILE = "path_config_file"
 PATH_OUTPUT = "output_directory"
+CKPT_PATH = ""
 PATH_LINEAR_PROBE = "linear_probe_directory"
 
 MODEL = "model"

@@ -69,15 +69,21 @@ def random_rotate(angles, units="degrees"):
         # kornia takes degrees
         alpha = _rads2angle(np.random.choice(angles), units)
         angle = torch.ones(b) * alpha
-        if KORNIA_VERSION < '0.4.0':
+        if KORNIA_VERSION < "0.4.0":
             scale = torch.ones(b)
         else:
             scale = torch.ones(b, 2)
         center = torch.ones(b, 2)
         center[..., 0] = (image_t.shape[3] - 1) / 2
         center[..., 1] = (image_t.shape[2] - 1) / 2
-        M = kornia.get_rotation_matrix2d(center, angle, scale).to(device)
-        rotated_image = kornia.warp_affine(image_t.float(), M, dsize=(h, w))
+        # M = kornia.get_rotation_matrix2d(center, angle, scale).to(device)
+        # rotated_image = kornia.warp_affine(image_t.float(), M, dsize=(h, w))
+        M = kornia.geometry.transform.get_rotation_matrix2d(center, angle, scale).to(
+            device
+        )
+        rotated_image = kornia.geometry.transform.warp_affine(
+            image_t.float(), M, dsize=(h, w)
+        )
         return rotated_image
 
     return inner

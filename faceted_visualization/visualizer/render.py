@@ -5,6 +5,7 @@ import torch
 import torchvision.transforms.transforms
 
 import image, wb
+import pdb
 
 logger = logging.getLogger()
 
@@ -27,7 +28,7 @@ def optimize(num_iterations: int,
              run_id: str = "",
              image_name: str = "render"):
     logger.info("Starting optimization process [ run_id = %s ]...", run_id)
-
+    #pdb.set_trace()
     for j in range(num_iterations):
         def closure():
             optimizer.zero_grad()

@@ -46,8 +46,8 @@ def parse_arguments():
     )
 
     parsed_args = parser.parse_args()
-    if parsed_args.obj.split(':')[0] not in ['layer4_2_relu3','layer4_2_conv3','layer4_2_bn3']:
-        raise ValueError('invalid layer specficiation')
+    # if parsed_args.obj.split(':')[0] not in ['layer4_2_relu3','layer4_2_conv3','layer4_2_bn3']:
+    #     raise ValueError('invalid layer specficiation')
 
 
     parsed_args.device = "cuda" if torch.cuda.is_available() else "cpu"

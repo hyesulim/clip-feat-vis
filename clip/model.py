@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from typing import Tuple, Union
 
+import os
+import json
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -16,18 +18,16 @@ class Bottleneck(nn.Module):
         # all conv layers have stride 1. an avgpool is performed after the second convolution when stride > 1
         self.conv1 = nn.Conv2d(inplanes, planes, 1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.relu1 = nn.ReLU(inplace=True)
 
         self.conv2 = nn.Conv2d(planes, planes, 3, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
-        self.relu2 = nn.ReLU(inplace=True)
 
         self.avgpool = nn.AvgPool2d(stride) if stride > 1 else nn.Identity()
 
         self.conv3 = nn.Conv2d(planes, planes * self.expansion, 1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * self.expansion)
-        self.relu3 = nn.ReLU(inplace=True)
 
+        self.relu = nn.ReLU(inplace=True)
         self.downsample = None
         self.stride = stride
 
@@ -42,8 +42,8 @@ class Bottleneck(nn.Module):
     def forward(self, x: torch.Tensor):
         identity = x
 
-        out = self.relu1(self.bn1(self.conv1(x)))
-        out = self.relu2(self.bn2(self.conv2(out)))
+        out = self.relu(self.bn1(self.conv1(x)))
+        out = self.relu(self.bn2(self.conv2(out)))
         out = self.avgpool(out)
         out = self.bn3(self.conv3(out))
 
@@ -51,7 +51,7 @@ class Bottleneck(nn.Module):
             identity = self.downsample(x)
 
         out += identity
-        out = self.relu3(out)
+        out = self.relu(out)
         return out
 
 
@@ -66,11 +66,11 @@ class AttentionPool2d(nn.Module):
         self.num_heads = num_heads
 
     def forward(self, x):
-        x = x.flatten(start_dim=2).permute(2, 0, 1)  # NCHW -> (HW)NC
+        x = x.reshape(x.shape[0], x.shape[1], x.shape[2] * x.shape[3]).permute(2, 0, 1)  # NCHW -> (HW)NC
         x = torch.cat([x.mean(dim=0, keepdim=True), x], dim=0)  # (HW+1)NC
         x = x + self.positional_embedding[:, None, :].to(x.dtype)  # (HW+1)NC
         x, _ = F.multi_head_attention_forward(
-            query=x[:1], key=x, value=x,
+            query=x, key=x, value=x,
             embed_dim_to_check=x.shape[-1],
             num_heads=self.num_heads,
             q_proj_weight=self.q_proj.weight,
@@ -88,7 +88,8 @@ class AttentionPool2d(nn.Module):
             training=self.training,
             need_weights=False
         )
-        return x.squeeze(0)
+
+        return x[0]
 
 
 class ModifiedResNet(nn.Module):
@@ -107,14 +108,12 @@ class ModifiedResNet(nn.Module):
         # the 3-layer stem
         self.conv1 = nn.Conv2d(3, width // 2, kernel_size=3, stride=2, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(width // 2)
-        self.relu1 = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(width // 2, width // 2, kernel_size=3, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(width // 2)
-        self.relu2 = nn.ReLU(inplace=True)
         self.conv3 = nn.Conv2d(width // 2, width, kernel_size=3, padding=1, bias=False)
         self.bn3 = nn.BatchNorm2d(width)
-        self.relu3 = nn.ReLU(inplace=True)
         self.avgpool = nn.AvgPool2d(2)
+        self.relu = nn.ReLU(inplace=True)
 
         # residual layers
         self._inplanes = width  # this is a *mutable* variable used during construction
@@ -137,9 +136,8 @@ class ModifiedResNet(nn.Module):
 
     def forward(self, x):
         def stem(x):
-            x = self.relu1(self.bn1(self.conv1(x)))
-            x = self.relu2(self.bn2(self.conv2(x)))
-            x = self.relu3(self.bn3(self.conv3(x)))
+            for conv, bn in [(self.conv1, self.bn1), (self.conv2, self.bn2), (self.conv3, self.bn3)]:
+                x = self.relu(bn(conv(x)))
             x = self.avgpool(x)
             return x
 
@@ -203,11 +201,17 @@ class Transformer(nn.Module):
         return self.resblocks(x)
 
 
-class VisionTransformer(nn.Module):
+class VisualTransformer(nn.Module):
     def __init__(self, input_resolution: int, patch_size: int, width: int, layers: int, heads: int, output_dim: int):
         super().__init__()
         self.input_resolution = input_resolution
         self.output_dim = output_dim
+        # Added so this info is available. should not change anything.
+        self.patch_size = patch_size
+        self.width = width
+        self.layers = layers
+        self.heads = heads
+
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=width, kernel_size=patch_size, stride=patch_size, bias=False)
 
         scale = width ** -0.5
@@ -270,7 +274,7 @@ class CLIP(nn.Module):
             )
         else:
             vision_heads = vision_width // 64
-            self.visual = VisionTransformer(
+            self.visual = VisualTransformer(
                 input_resolution=image_resolution,
                 patch_size=vision_patch_size,
                 width=vision_width,
@@ -299,6 +303,7 @@ class CLIP(nn.Module):
     def initialize_parameters(self):
         nn.init.normal_(self.token_embedding.weight, std=0.02)
         nn.init.normal_(self.positional_embedding, std=0.01)
+        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
         if isinstance(self.visual, ModifiedResNet):
             if self.visual.attnpool is not None:
@@ -356,20 +361,21 @@ class CLIP(nn.Module):
         return x
 
     def forward(self, image, text):
+        if image is None:
+            text_features = self.encode_text(text)
+            return text_features
+        elif text is None:
+            image_features = self.encode_image(image)
+            return image_features
+
+        # import pdb;pdb.set_trace()
         image_features = self.encode_image(image)
         text_features = self.encode_text(text)
 
-        # normalized features
-        image_features = image_features / image_features.norm(dim=1, keepdim=True)
-        text_features = text_features / text_features.norm(dim=1, keepdim=True)
-
-        # cosine similarity as logits
-        logit_scale = self.logit_scale.exp()
-        logits_per_image = logit_scale * image_features @ text_features.t()
-        logits_per_text = logits_per_image.t()
-
-        # shape = [global_batch_size, global_batch_size]
-        return logits_per_image, logits_per_text
+        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+        
+        return image_features, text_features, self.logit_scale.exp()
 
 
 def convert_weights(model: nn.Module):
@@ -419,7 +425,7 @@ def build_model(state_dict: dict):
     vocab_size = state_dict["token_embedding.weight"].shape[0]
     transformer_width = state_dict["ln_final.weight"].shape[0]
     transformer_heads = transformer_width // 64
-    transformer_layers = len(set(k.split(".")[2] for k in state_dict if k.startswith("transformer.resblocks")))
+    transformer_layers = len(set(k.split(".")[2] for k in state_dict if k.startswith(f"transformer.resblocks")))
 
     model = CLIP(
         embed_dim,
@@ -431,6 +437,7 @@ def build_model(state_dict: dict):
         if key in state_dict:
             del state_dict[key]
 
-    convert_weights(model)
     model.load_state_dict(state_dict)
+    for p in model.parameters():
+        p.data = p.data.float()
     return model.eval()

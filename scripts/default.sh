@@ -2,7 +2,7 @@
 
 cd ..
 
-CUDA_VISIBLE_DEVICES=6 python main.py \
+CUDA_VISIBLE_DEVICES=0 python3 main.py \
 --optim 'adam' \
 --lr 5e-2 \
 --iters 512 \

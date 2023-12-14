@@ -62,6 +62,6 @@ def save_model(model, save_dir, epoch="last"):
 
 
 def load_model(model, load_dir):
-    checkpoint_path = os.path.join(load_dir, "model_checkpoint.pth")
+    checkpoint_path = os.path.join(load_dir, "model_checkpoint-last.pth")
     model.load_state_dict(torch.load(checkpoint_path))
     return model

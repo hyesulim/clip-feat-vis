@@ -1,6 +1,7 @@
 import argparse
 import ast
 import os
+import os.path as osp
 import pprint
 import sys
 from typing import Callable, Dict, Tuple
@@ -13,6 +14,7 @@ import cli, hook, image, constants, render, wb, helpers
 import logger as logger_
 import clip
 import logging
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -31,11 +33,18 @@ def get_probe_weights(model_location: str, device: str) -> torch.Tensor:
 
 
 def get_model(
-    model_name, device="cpu") -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
+    model_name, ckpt_path: str, device="cpu"
+) -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
     logger.info("Loading CLIP model [ %s ].", model_name)
     if model_name in clip.available_models():
-        model, transforms = clip.load(model_name, device=device)
-        model = model.visual
+        model, _, transforms = clip.load(model_name, device=device, jit=False)
+        if len(ckpt_path) > 1:
+            model = torch.load(ckpt_path)
+            model = model.image_encoder.model.visual
+            model.to(device)
+        else:
+            model = model.visual
+
         logger.info("Finished loading model [ %s ]", model_name)
         # transforms[2, 3] is to convert image to tensor. This is not required
         del transforms.transforms[2]
@@ -66,7 +75,10 @@ def orchestrate(
     config: Dict, wandb_object: wb.WandB = None, save_to_file: bool = False, device="cpu") -> Callable:
     if save_to_file:
         logger_.add_file_handler(config)
-    model, clip_transforms = get_model(config[constants.MODEL], device=device)
+    model, clip_transforms = get_model(model_name=config[constants.MODEL],
+                                       ckpt_path=config[constants.CKPT_PATH],
+                                       device=device)
+
 
     model_hook = hook.register_hooks(model)
     helpers.set_seed(config.get(constants.RANDOM_SEED, None))
@@ -85,7 +97,20 @@ def orchestrate(
         learning_rate=config[constants.LEARNING_RATE],
     )
 
-    probe_weights = get_probe_weights(model_location=config[constants.PATH_LINEAR_PROBE], device=device)
+    # Find the last version among LP ckpts
+    lp_dir = osp.join(config[constants.PATH_LINEAR_PROBE], config[constants.LINEAR_PROBE_LAYER])
+    existing_versions = [
+        d
+        for d in os.listdir(lp_dir)
+        if os.path.isdir(os.path.join(lp_dir, d)) and d.startswith("version_")
+    ]
+    latest_version = max([int(v.split("_")[1]) for v in existing_versions])
+    # Use 10 epoch weight by default
+    lp_ckpt_path = osp.join(lp_dir, f"version_{latest_version}", 'model_checkpoint-10.pth')
+    probe_weights = get_probe_weights(
+        model_location=lp_ckpt_path, device=device
+    )
+    #probe_weights = get_probe_weights(model_location=config[constants.PATH_LINEAR_PROBE], device=device)
 
     transforms = image.consolidate_transforms(
         use_clip_transforms=config[constants.USE_TRANSFORMS],
@@ -115,6 +140,19 @@ def orchestrate(
                          output_directory=os.path.join(config[constants.PATH_OUTPUT], run_id),
                          create_dir=True)
 
+    if len(config[constants.CKPT_PATH]) > 1:
+        ft_mod = f"_{config[constants.CKPT_PATH].split('/')[-1][:-3]}"
+    else:
+        ft_mod = ''
+
+
+    helpers.save_results(
+        image_array=image_f(),
+        output_directory=os.path.join(
+            config[constants.PATH_OUTPUT], config[constants.OBJECTIVE]+ft_mod, config[constants.LINEAR_PROBE_LAYER], run_id
+        ),
+        create_dir=True,
+    )
 
     return image_f
 
