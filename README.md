@@ -31,6 +31,34 @@ pip install -r requirements.txt
    a.) `visualizer` - this is a python package containing reusable code for using faceted visualization in your project. It currently only supports CLIP models.
 4. finetuning - This folder contains our the code required for finetuning
 
+## Ablation Details
+
+You can find the links to our ablations here:
+
+**CelebA** 
+
+[Pre-Trained (Rohan)](https://wandb.ai/rohanprasad/idl-project-person-facet)
+
+[Pre-Trained (Changdae)](https://wandb.ai/changdaeoh/idl_fvis_celeba_pt/overview?workspace=user-changdaeoh)
+
+[Fine-Tuned](https://wandb.ai/changdaeoh/idl_fvis_celeba_ft/workspace?workspace=user-changdaeoh)
+
+**SUN397** 
+
+[Pre-Trained (Rohan)](https://wandb.ai/rohanprasad/idl-project-sun397?workspace=user-rohanprasad)
+
+[Pre-Trained (Changdae)](https://wandb.ai/changdaeoh/idl_fvis_sun397_pt?workspace=user-changdaeoh)
+
+[Fine-Tuned](https://wandb.ai/changdaeoh/idl_fvis_sun397_ft/overview?workspace=user-changdaeoh)
+
+**Aircraft** 
+
+[Pre-Trained (Rohan)](https://wandb.ai/rohanprasad/idl-project-air?workspace=user-rohanprasad)
+
+[Pre-Trained (Changdae)](https://wandb.ai/changdaeoh/idl_fvis_air_pt/overview?workspace=user-changdaeoh)
+
+[Fine-Tuned](https://wandb.ai/changdaeoh/idl_fvis_air_ft/workspace?workspace=user-changdaeoh)
+
 ### Acknowledgement
 _This repository is built on top of [Lucent](https://github.com/greentfrapp/lucent) library, and we would like to 
 thank the authors of Lucent for their extensive efforts.!_
