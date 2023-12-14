@@ -12,11 +12,11 @@ import torchvision.transforms.v2
 
 import cli, hook, image, constants, render, wb, helpers
 import logger as logger_
-import clip.clip as clip
+import clip
 import logging
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 logger = logging.getLogger()
 run_id = logger_.run_id
@@ -33,7 +33,7 @@ def get_probe_weights(model_location: str, device: str) -> torch.Tensor:
 
 
 def get_model(
-    model_name:str, ckpt_path:str, device=device
+    model_name, ckpt_path: str, device="cpu"
 ) -> Tuple[torch.nn.Module, torchvision.transforms.transforms.Compose]:
     logger.info("Loading CLIP model [ %s ].", model_name)
     if model_name in clip.available_models():
@@ -72,12 +72,13 @@ def get_optimizer(parameters, optimizer_name: str, learning_rate: float):
 
 
 def orchestrate(
-    config: Dict, wandb_object: wb.WandB = None, save_to_file: bool = False
-) -> Callable:
+    config: Dict, wandb_object: wb.WandB = None, save_to_file: bool = False, device="cpu") -> Callable:
     if save_to_file:
         logger_.add_file_handler(config)
-    model, clip_transforms = get_model(config[constants.MODEL],config[constants.CKPT_PATH], device=device)
-    
+    model, clip_transforms = get_model(model_name=config[constants.MODEL],
+                                       ckpt_path=config[constants.CKPT_PATH],
+                                       device=device)
+
 
     model_hook = hook.register_hooks(model)
     helpers.set_seed(config.get(constants.RANDOM_SEED, None))
@@ -144,7 +145,7 @@ def orchestrate(
     else:
         ft_mod = ''
 
-    
+
     helpers.save_results(
         image_array=image_f(),
         output_directory=os.path.join(
